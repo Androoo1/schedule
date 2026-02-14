@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание СФУ</title>
+    <!-- Подключаем Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Адаптация под тему Telegram */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #f8f9fa);
+            color: var(--tg-theme-text-color, #212529);
+            padding: 20px;
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Заголовок с градиентом */
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--tg-theme-button-color, #3390ec), var(--tg-theme-link-color, #6c5ce7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .subtitle {
+            color: var(--tg-theme-hint-color, #6c757d);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        /* Поле поиска */
+        .search-box {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--tg-theme-hint-color, #dee2e6);
+            border-radius: 30px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color, white);
+            color: var(--tg-theme-text-color, #212529);
+            margin-bottom: 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+        .search-box:focus {
+            border-color: var(--tg-theme-button-color, #3390ec);
+            box-shadow: 0 0 0 4px rgba(51, 144, 236, 0.2);
+            transform: scale(1.02);
+        }
+        .search-box:hover {
+            transform: scale(1.01);
+        }
+
+        /* Сетка групп */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+            animation: slideUp 0.5s ease;
+        }
+
+        /* Кнопки групп */
+        .group-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, white);
+            border: none;
+            padding: 15px 10px;
+            border-radius: 15px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .group-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .group-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            filter: brightness(1.1);
+        }
+        .group-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        .group-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Карточка дня */
+        .day-card {
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.4s ease-out;
+            border: 1px solid transparent;
+        }
+        .day-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .day-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--tg-theme-link-color, #6c5ce7);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .day-title::before {
+            content: '📅';
+            font-size: 1.8rem;
+        }
+
+        /* Элемент пары */
+        .lesson-item {
+            padding: 18px;
+            border-left: 4px solid var(--tg-theme-button-color, #3390ec);
+            margin-bottom: 15px;
+            background: rgba(51, 144, 236, 0.03);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            animation: slideRight 0.3s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            overflow: hidden;
+        }
+        .lesson-item:nth-child(1) { animation-delay: 0.1s; }
+        .lesson-item:nth-child(2) { animation-delay: 0.2s; }
+        .lesson-item:nth-child(3) { animation-delay: 0.3s; }
+        .lesson-item:nth-child(4) { animation-delay: 0.4s; }
+        .lesson-item:nth-child(5) { animation-delay: 0.5s; }
+
+        .lesson-item:hover {
+            background: rgba(51, 144, 236, 0.1);
+            transform: translateX(8px) scale(1.02);
+            border-left-width: 6px;
+        }
+
+        .lesson-time {
+            font-weight: 700;
+            color: var(--tg-theme-link-color, #6c5ce7);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lesson-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .lesson-details {
+            display: flex;
+            gap: 20px;
+            color: var(--tg-theme-hint-color, #6c757d);
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+
+        .lesson-details span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Таймер обратного отсчёта */
+        .countdown-timer {
+            font-size: 0.9rem;
+            padding: 6px 16px;
+            background: linear-gradient(135deg, rgba(51, 144, 236, 0.15), rgba(108, 92, 231, 0.15));
+            border-radius: 30px;
+            color: var(--tg-theme-link-color, #6c5ce7);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            animation: pulse 2s infinite;
+        }
+        .countdown-timer.expired {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(200, 35, 51, 0.15));
+            color: #dc3545;
+            animation: none;
+        }
+        .countdown-timer::before {
+            content: '⏳';
+            font-size: 1rem;
+        }
+        .countdown-timer.expired::before {
+            content: '✅';
+        }
+
+        /* Индикатор загрузки */
+        .loader {
+            text-align: center;
+            padding: 50px;
+            color: var(--tg-theme-hint-color);
+        }
+        .loader-spinner {
+            border: 4px solid var(--tg-theme-secondary-bg-color);
+            border-top: 4px solid var(--tg-theme-button-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        /* Кнопка назад */
+        .back-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, white);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            filter: brightness(1.1);
+        }
+        .back-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes slideRight {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Расписание СФУ</h1>
+        <div class="subtitle" id="currentDate"></div>
+
+        <!-- Экран с группами -->
+        <div id="groupsScreen">
+            <input type="text" id="searchInput" class="search-box"
+                   placeholder="🔍 Введите номер группы (например, ИСИТ-101)...">
+            <div id="groupsContainer" class="groups-grid"></div>
+        </div>
+
+        <!-- Экран с расписанием (изначально скрыт) -->
+        <div id="scheduleScreen" style="display: none;">
+            <button class="back-btn" id="backToGroupsBtn">← К списку групп</button>
+            <div id="scheduleContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Устанавливаем цвета в соответствии с темой Telegram
+        document.body.style.backgroundColor = tg.themeParams.bg_color;
+        document.body.style.color = tg.themeParams.text_color;
+
+        // Показываем текущую дату
+        const now = new Date();
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Тестовые данные групп (в реальности будут с сервера)
+        const groups = [
+            'ИСИТ-101', 'ПИ-201', 'ПМИ-301', 'ФИИТ-401',
+            'ИВТ-102', 'БИ-202', 'ПМ-302', 'ИСТ-402',
+            'ПРИ-103', 'ФИ-203', 'МО-303', 'ИБ-403'
+        ];
+
+        let currentGroup = null;
+
+        // Функция для вычисления времени до конца пары
+        function getTimeUntil(endTimeStr) {
+            const now = new Date();
+            const [hours, minutes] = endTimeStr.split(':').map(Number);
+
+            const endTime = new Date();
+            endTime.setHours(hours, minutes, 0);
+
+            if (now > endTime) return null;
+
+            const diffMs = endTime - now;
+            const diffMins = Math.floor(diffMs / 60000);
+
+            if (diffMins < 1) return 'менее 1 мин';
+            if (diffMins < 60) return `${diffMins} мин`;
+
+            const hoursLeft = Math.floor(diffMins / 60);
+            const minsLeft = diffMins % 60;
+            return `${hoursLeft} ч ${minsLeft} мин`;
+        }
+
+        // Отображение групп
+        function displayGroups(groupsList) {
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = '';
+
+            groupsList.forEach(group => {
+                const btn = document.createElement('button');
+                btn.className = 'group-btn';
+                btn.textContent = group;
+                btn.onclick = () => selectGroup(group);
+                container.appendChild(btn);
+            });
+        }
+
+        // Фильтрация групп при поиске
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+            const filtered = groups.filter(g => g.toLowerCase().includes(searchText));
+            displayGroups(filtered);
+        });
+
+        // Выбор группы
+        function selectGroup(group) {
+            currentGroup = group;
+
+            // Переключаем экраны
+            document.getElementById('groupsScreen').style.display = 'none';
+            document.getElementById('scheduleScreen').style.display = 'block';
+
+            // Показываем загрузку
+            document.getElementById('scheduleContainer').innerHTML = `
+                <div class="loader">
+                    <div class="loader-spinner"></div>
+                    Загружаем расписание для ${group}...
+                </div>
+            `;
+
+            // Здесь будет запрос к серверу за расписанием
+            // Пока используем тестовые данные
+            setTimeout(() => {
+                loadMockSchedule(group);
+            }, 800);
+        }
+
+        // Тестовое расписание (в реальности будет с сервера)
+        function loadMockSchedule(group) {
+            const mockSchedule = {
+                'Понедельник': [
+                    { time: '09:00-10:30', name: 'Математический анализ', teacher: 'Иванов И.И.', room: '301', endTime: '10:30' },
+                    { time: '10:45-12:15', name: 'Физика', teacher: 'Петров П.П.', room: '215', endTime: '12:15' },
+                    { time: '13:00-14:30', name: 'Программирование', teacher: 'Сидоров С.С.', room: '410', endTime: '14:30' },
+                    { time: '14:45-16:15', name: 'Английский язык', teacher: 'Козлова А.А.', room: '220', endTime: '16:15' }
+                ],
+                'Вторник': [
+                    { time: '09:00-10:30', name: 'Базы данных', teacher: 'Смирнова Е.В.', room: '320', endTime: '10:30' },
+                    { time: '10:45-12:15', name: 'Дискретная математика', teacher: 'Николаев Д.Н.', room: '405', endTime: '12:15' },
+                    { time: '13:00-14:30', name: 'Физкультура', teacher: 'Петров И.И.', room: 'Спортзал', endTime: '14:30' }
+                ],
+                'Среда': [
+                    { time: '09:00-10:30', name: 'История', teacher: 'Васильев В.В.', room: '207', endTime: '10:30' },
+                    { time: '10:45-12:15', name: 'Философия', teacher: 'Андреева М.А.', room: '115', endTime: '12:15' },
+                    { time: '13:00-14:30', name: 'Web-программирование', teacher: 'Соколов А.С.', room: '418', endTime: '14:30' }
+                ],
+                'Четверг': [
+                    { time: '10:45-12:15', name: 'Операционные системы', teacher: 'Волков В.В.', room: '330', endTime: '12:15' },
+                    { time: '13:00-14:30', name: 'Теория вероятностей', teacher: 'Зайцева Н.Н.', room: '208', endTime: '14:30' }
+                ],
+                'Пятница': [
+                    { time: '09:00-10:30', name: 'Правоведение', teacher: 'Соловьев С.С.', room: '101', endTime: '10:30' },
+                    { time: '10:45-12:15', name: 'Экономика', teacher: 'Лебедева Т.Т.', room: '112', endTime: '12:15' },
+                    { time: '13:00-14:30', name: 'Безопасность', teacher: 'Орлов О.О.', room: '205', endTime: '14:30' }
+                ],
+                'Суббота': [
+                    { time: '10:00-11:30', name: 'Факультатив', teacher: 'Григорьев Г.Г.', room: '310', endTime: '11:30' }
+                ]
+            };
+
+            renderSchedule(mockSchedule);
+        }
+
+        // Отрисовка расписания
+        function renderSchedule(schedule) {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = '';
+
+            for (const [day, lessons] of Object.entries(schedule)) {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+
+                let dayHTML = `<div class="day-title">${day}</div>`;
+
+                lessons.forEach(lesson => {
+                    const timeUntil = lesson.endTime ? getTimeUntil(lesson.endTime) : null;
+
+                    dayHTML += `
+                        <div class="lesson-item">
+                            <div class="lesson-time">
+                                <span>⏰ ${lesson.time}</span>
+                                ${timeUntil ?
+                                    `<span class="countdown-timer">${timeUntil}</span>` :
+                                    '<span class="countdown-timer expired">Пара окончена</span>'}
+                            </div>
+                            <div class="lesson-name">📚 ${lesson.name}</div>
+                            <div class="lesson-details">
+                                <span>👨‍🏫 ${lesson.teacher}</span>
+                                <span>🏢 ${lesson.room}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                dayCard.innerHTML = dayHTML;
+                container.appendChild(dayCard);
+            }
+
+            // Запускаем обновление таймеров каждые 30 секунд
+            startTimerUpdates();
+        }
+
+        // Обновление таймеров
+        function startTimerUpdates() {
+            setInterval(() => {
+                document.querySelectorAll('.lesson-item').forEach(item => {
+                    const timeSpan = item.querySelector('.countdown-timer');
+                    if (timeSpan) {
+                        const timeText = item.querySelector('.lesson-time span:first-child').textContent;
+                        const endTimeMatch = timeText.match(/(\d{2}:\d{2})$/);
+
+                        if (endTimeMatch) {
+                            const endTime = endTimeMatch[1];
+                            const until = getTimeUntil(endTime);
+
+                            if (until) {
+                                timeSpan.textContent = until;
+                                timeSpan.classList.remove('expired');
+                            } else {
+                                timeSpan.textContent = 'Пара окончена';
+                                timeSpan.classList.add('expired');
+                            }
+                        }
+                    }
+                });
+            }, 30000); // Каждые 30 секунд
+        }
+
+        // Кнопка назад к группам
+        document.getElementById('backToGroupsBtn').addEventListener('click', () => {
+            document.getElementById('groupsScreen').style.display = 'block';
+            document.getElementById('scheduleScreen').style.display = 'none';
+        });
+
+        // Инициализация
+        displayGroups(groups.slice(0, 12));
+    </script>
+</body>
+</html>
