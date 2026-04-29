@@ -1,540 +1,967 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание СФУ</title>
-    <!-- Подключаем Telegram Web App -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* Сброс стилей */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>СФУ Расписание</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #2563EB;
+  --accent-soft: rgba(37,99,235,0.1);
+  --accent-glow: rgba(37,99,235,0.18);
+  --bg: #F0F2F5;
+  --surface: #FFFFFF;
+  --surface2: #F7F8FA;
+  --text: #0F1117;
+  --text2: #5C6370;
+  --text3: #9BA3AF;
+  --border: rgba(0,0,0,0.07);
+  --green: #16A34A;
+  --green-soft: rgba(22,163,74,0.1);
+  --orange: #EA580C;
+  --orange-soft: rgba(234,88,12,0.1);
+  --red: #DC2626;
+  --red-soft: rgba(220,38,38,0.1);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-        /* Адаптация под тему Telegram */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--tg-theme-bg-color, #f8f9fa);
-            color: var(--tg-theme-text-color, #212529);
-            padding: 20px;
-            line-height: 1.6;
-            transition: background-color 0.3s, color 0.3s;
-            min-height: 100vh;
-        }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0D0F14;
+    --surface: #161921;
+    --surface2: #1E2230;
+    --text: #F0F2F5;
+    --text2: #8B95A6;
+    --text3: #4D5566;
+    --border: rgba(255,255,255,0.07);
+    --accent-soft: rgba(59,130,246,0.12);
+    --accent-glow: rgba(59,130,246,0.2);
+    --green-soft: rgba(34,197,94,0.1);
+    --orange-soft: rgba(251,146,60,0.1);
+    --red-soft: rgba(248,113,113,0.1);
+  }
+}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-        /* Заголовок с градиентом */
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--tg-theme-button-color, #3390ec), var(--tg-theme-link-color, #6c5ce7));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: fadeIn 0.5s ease;
-        }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-        .subtitle {
-            color: var(--tg-theme-hint-color, #6c757d);
-            margin-bottom: 2rem;
-            font-size: 1rem;
-            animation: fadeIn 0.6s ease;
-        }
+/* ─── HEADER ─── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-        /* Поле поиска */
-        .search-box {
-            width: 100%;
-            padding: 16px 20px;
-            border: 2px solid var(--tg-theme-hint-color, #dee2e6);
-            border-radius: 30px;
-            font-size: 16px;
-            background: var(--tg-theme-bg-color, white);
-            color: var(--tg-theme-text-color, #212529);
-            margin-bottom: 25px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            outline: none;
-        }
-        .search-box:focus {
-            border-color: var(--tg-theme-button-color, #3390ec);
-            box-shadow: 0 0 0 4px rgba(51, 144, 236, 0.2);
-            transform: scale(1.02);
-        }
-        .search-box:hover {
-            transform: scale(1.01);
-        }
+.header-logo {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
 
-        /* Сетка групп */
-        .groups-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-            margin-bottom: 30px;
-            animation: slideUp 0.5s ease;
-        }
+.header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
 
-        /* Кнопки групп */
-        .group-btn {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, white);
-            border: none;
-            padding: 15px 10px;
-            border-radius: 15px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .group-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        .group-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            filter: brightness(1.1);
-        }
-        .group-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        .group-btn:active {
-            transform: translateY(0) scale(0.98);
-        }
+.header-back {
+  margin-left: auto;
+  background: var(--surface2);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  gap: 5px;
+}
+.header-back.visible { display: flex; }
 
-        /* Карточка дня */
-        .day-card {
-            background: var(--tg-theme-secondary-bg-color, white);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: slideIn 0.4s ease-out;
-            border: 1px solid transparent;
-        }
-        .day-card:hover {
-            transform: translateY(-5px) scale(1.01);
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
-            border-color: var(--tg-theme-button-color, #3390ec);
-        }
+/* ─── SEARCH SCREEN ─── */
+#searchScreen { padding: 16px; }
 
-        .day-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--tg-theme-link-color, #6c5ce7);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .day-title::before {
-            content: '📅';
-            font-size: 1.8rem;
-        }
+.search-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+.search-icon {
+  position: absolute;
+  left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; opacity: 0.4; pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  padding: 13px 14px 13px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.search-input::placeholder { color: var(--text3); }
 
-        /* Элемент пары */
-        .lesson-item {
-            padding: 18px;
-            border-left: 4px solid var(--tg-theme-button-color, #3390ec);
-            margin-bottom: 15px;
-            background: rgba(51, 144, 236, 0.03);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            animation: slideRight 0.3s ease-out;
-            animation-fill-mode: both;
-            position: relative;
-            overflow: hidden;
-        }
-        .lesson-item:nth-child(1) { animation-delay: 0.1s; }
-        .lesson-item:nth-child(2) { animation-delay: 0.2s; }
-        .lesson-item:nth-child(3) { animation-delay: 0.3s; }
-        .lesson-item:nth-child(4) { animation-delay: 0.4s; }
-        .lesson-item:nth-child(5) { animation-delay: 0.5s; }
+/* ─── SECTION LABEL ─── */
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
 
-        .lesson-item:hover {
-            background: rgba(51, 144, 236, 0.1);
-            transform: translateX(8px) scale(1.02);
-            border-left-width: 6px;
-        }
+/* ─── GROUPS GRID ─── */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
 
-        .lesson-time {
-            font-weight: 700;
-            color: var(--tg-theme-link-color, #6c5ce7);
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.group-chip {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s ease;
+  user-select: none;
+}
+.group-chip:active {
+  transform: scale(0.95);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
-        .lesson-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+/* ─── DAY TABS ─── */
+.day-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.day-tabs::-webkit-scrollbar { display: none; }
 
-        .lesson-details {
-            display: flex;
-            gap: 20px;
-            color: var(--tg-theme-hint-color, #6c757d);
-            font-size: 0.95rem;
-            flex-wrap: wrap;
-        }
+.day-tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text2);
+  transition: all .15s;
+  white-space: nowrap;
+}
+.day-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+.day-tab.today { color: var(--accent); }
+.day-tab.today.active { color: #fff; }
 
-        .lesson-details span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+/* ─── SCHEDULE SCREEN ─── */
+#scheduleScreen { padding: 16px; display: none; }
 
-        /* Таймер обратного отсчёта */
-        .countdown-timer {
-            font-size: 0.9rem;
-            padding: 6px 16px;
-            background: linear-gradient(135deg, rgba(51, 144, 236, 0.15), rgba(108, 92, 231, 0.15));
-            border-radius: 30px;
-            color: var(--tg-theme-link-color, #6c5ce7);
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            animation: pulse 2s infinite;
-        }
-        .countdown-timer.expired {
-            background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(200, 35, 51, 0.15));
-            color: #dc3545;
-            animation: none;
-        }
-        .countdown-timer::before {
-            content: '⏳';
-            font-size: 1rem;
-        }
-        .countdown-timer.expired::before {
-            content: '✅';
-        }
+.group-hero {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.group-avatar {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.group-name { font-size: 18px; font-weight: 700; }
+.group-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
 
-        /* Индикатор загрузки */
-        .loader {
-            text-align: center;
-            padding: 50px;
-            color: var(--tg-theme-hint-color);
-        }
-        .loader-spinner {
-            border: 4px solid var(--tg-theme-secondary-bg-color);
-            border-top: 4px solid var(--tg-theme-button-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
+/* ─── LESSON CARDS ─── */
+.lessons-list { display: flex; flex-direction: column; gap: 10px; }
 
-        /* Кнопка назад */
-        .back-btn {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, white);
-            border: none;
-            padding: 14px 28px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            filter: brightness(1.1);
-        }
-        .back-btn:active {
-            transform: translateY(0);
-        }
+.lesson-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: transform .15s;
+  position: relative;
+  overflow: hidden;
+}
+.lesson-card:active { transform: scale(0.98); }
 
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        @keyframes slideRight {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
+.lesson-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 3px 0 0 3px;
+}
+.lesson-card.ongoing::before { background: var(--green); }
+.lesson-card.upcoming::before { background: var(--orange); }
+.lesson-card.past { opacity: 0.55; }
+.lesson-card.past::before { background: var(--text3); }
+
+.lesson-time-col {
+  min-width: 60px;
+  flex-shrink: 0;
+}
+.lesson-time-start {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.lesson-time-end {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.lesson-body { flex: 1; min-width: 0; }
+.lesson-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 6px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.lesson-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lesson-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text2);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── STATUS BADGE ─── */
+.status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+.badge-ongoing { background: var(--green-soft); color: var(--green); }
+.badge-upcoming { background: var(--orange-soft); color: var(--orange); }
+.badge-soon { background: var(--accent-soft); color: var(--accent); }
+
+/* ─── EMPTY / LOADER ─── */
+.empty-day {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2);
+}
+.empty-day-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-day-text { font-size: 15px; font-weight: 500; }
+.empty-day-sub { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+.loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 20px;
+  gap: 14px;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 14px; color: var(--text2); }
+
+/* ─── ERROR ─── */
+.error-card {
+  background: var(--red-soft);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.error-icon { font-size: 20px; flex-shrink: 0; }
+.error-text { font-size: 13px; color: var(--red); font-weight: 500; }
+
+/* ─── NO RESULTS ─── */
+.no-results {
+  text-align: center;
+  padding: 30px;
+  color: var(--text3);
+  font-size: 14px;
+}
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 16px);
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--text);
+  color: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 20px;
+  transition: transform .3s ease;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(12px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .25s ease forwards; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>📚 Расписание СФУ</h1>
-        <div class="subtitle" id="currentDate"></div>
 
-        <!-- Экран с группами -->
-        <div id="groupsScreen">
-            <input type="text" id="searchInput" class="search-box"
-                   placeholder="🔍 Введите номер группы (например, ИСИТ-101)...">
-            <div id="groupsContainer" class="groups-grid"></div>
-        </div>
+<!-- HEADER -->
+<div class="header" id="header">
+  <div class="header-logo">📚</div>
+  <div>
+    <div class="header-title" id="headerTitle">СФУ Расписание</div>
+    <div class="header-sub" id="headerSub" style="color:var(--text2)"></div>
+  </div>
+  <button class="header-back" id="backBtn" onclick="goBack()">← Назад</button>
+</div>
 
-        <!-- Экран с расписанием (изначально скрыт) -->
-        <div id="scheduleScreen" style="display: none;">
-            <button class="back-btn" id="backToGroupsBtn">← К списку групп</button>
-            <div id="scheduleContainer"></div>
-        </div>
+<!-- SEARCH SCREEN -->
+<div id="searchScreen">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput"
+      placeholder="Введите группу: ИСИТ-101..."
+      autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+
+  <div class="section-label" id="groupsLabel">Все группы</div>
+  <div class="groups-grid" id="groupsGrid"></div>
+</div>
+
+<!-- SCHEDULE SCREEN -->
+<div id="scheduleScreen">
+  <div class="group-hero" id="groupHero">
+    <div class="group-avatar">🎓</div>
+    <div>
+      <div class="group-name" id="heroName"></div>
+      <div class="group-meta" id="heroMeta"></div>
     </div>
+  </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+  <div class="day-tabs" id="dayTabs"></div>
+  <div class="lessons-list" id="lessonsContainer"></div>
+</div>
 
-        // Устанавливаем цвета в соответствии с темой Telegram
-        document.body.style.backgroundColor = tg.themeParams.bg_color;
-        document.body.style.color = tg.themeParams.text_color;
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-        // Показываем текущую дату
-        const now = new Date();
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.ready();
 
-        // Тестовые данные групп (в реальности будут с сервера)
-        const groups = [
-            'ИСИТ-101', 'ПИ-201', 'ПМИ-301', 'ФИИТ-401',
-            'ИВТ-102', 'БИ-202', 'ПМ-302', 'ИСТ-402',
-            'ПРИ-103', 'ФИ-203', 'МО-303', 'ИБ-403'
-        ];
+// Применяем тему Telegram
+if (tg.themeParams) {
+  const tp = tg.themeParams;
+  if (tp.bg_color) document.documentElement.style.setProperty('--bg', hexToRgba(tp.bg_color));
+  if (tp.secondary_bg_color) document.documentElement.style.setProperty('--surface', hexToRgba(tp.secondary_bg_color));
+  if (tp.text_color) document.documentElement.style.setProperty('--text', hexToRgba(tp.text_color));
+  if (tp.hint_color) document.documentElement.style.setProperty('--text2', hexToRgba(tp.hint_color));
+  if (tp.button_color) document.documentElement.style.setProperty('--accent', hexToRgba(tp.button_color));
+}
 
-        let currentGroup = null;
+function hexToRgba(hex) {
+  if (!hex || !hex.startsWith('#')) return hex;
+  return hex;
+}
 
-        // Функция для вычисления времени до конца пары
-        function getTimeUntil(endTimeStr) {
-            const now = new Date();
-            const [hours, minutes] = endTimeStr.split(':').map(Number);
+// ─── ДАННЫЕ ───
+let allGroups = [];
+let currentGroup = null;
+let currentSchedule = {};
+let currentDay = null;
 
-            const endTime = new Date();
-            endTime.setHours(hours, minutes, 0);
+const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб'];
 
-            if (now > endTime) return null;
+// Индекс сегодняшнего дня (0=пн)
+function getTodayIdx() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
 
-            const diffMs = endTime - now;
-            const diffMins = Math.floor(diffMs / 60000);
+function getCurrentTime() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
 
-            if (diffMins < 1) return 'менее 1 мин';
-            if (diffMins < 60) return `${diffMins} мин`;
+function parseTime(str) {
+  const m = str.match(/(\d{1,2}):(\d{2})/g);
+  if (!m || m.length < 1) return null;
+  const [h, min] = m[0].split(':').map(Number);
+  return h * 60 + min;
+}
 
-            const hoursLeft = Math.floor(diffMins / 60);
-            const minsLeft = diffMins % 60;
-            return `${hoursLeft} ч ${minsLeft} мин`;
+function parseEndTime(str) {
+  const m = str.match(/(\d{1,2}):(\d{2})/g);
+  if (!m || m.length < 2) return null;
+  const [h, min] = m[1].split(':').map(Number);
+  return h * 60 + min;
+}
+
+function getLessonStatus(timeStr) {
+  const now = getCurrentTime();
+  const start = parseTime(timeStr);
+  const end = parseEndTime(timeStr);
+  if (start === null || end === null) return 'unknown';
+  if (now >= start && now <= end) return 'ongoing';
+  if (now < start) {
+    if (start - now <= 15) return 'soon';
+    return 'upcoming';
+  }
+  return 'past';
+}
+
+function formatCountdown(timeStr) {
+  const now = getCurrentTime();
+  const start = parseTime(timeStr);
+  const end = parseEndTime(timeStr);
+  if (start === null || end === null) return '';
+
+  if (now >= start && now <= end) {
+    const left = end - now;
+    if (left < 1) return 'Заканчивается';
+    if (left < 60) return `Ещё ${left} мин`;
+    return `Ещё ${Math.floor(left/60)}ч ${left%60}мин`;
+  }
+  if (now < start) {
+    const left = start - now;
+    if (left <= 15) return `Через ${left} мин`;
+    return '';
+  }
+  return '';
+}
+
+// ─── ИНИЦИАЛИЗАЦИЯ ───
+async function init() {
+  const now = new Date();
+  document.getElementById('headerSub').textContent = now.toLocaleDateString('ru', {
+    day: 'numeric', month: 'long', weekday: 'short'
+  });
+
+  showLoader();
+  allGroups = await fetchGroups();
+  hideLoader();
+  renderGroups(allGroups);
+}
+
+function showLoader() {
+  document.getElementById('groupsGrid').innerHTML = `
+    <div style="grid-column:1/-1">
+      <div class="loader-wrap">
+        <div class="spinner"></div>
+        <div class="loader-text">Загружаю список групп...</div>
+      </div>
+    </div>`;
+}
+
+function hideLoader() {}
+
+// ─── FETCH GROUPS ───
+async function fetchGroups() {
+  try {
+    // Пробуем через CORS-proxy так как сайт СФУ не поддерживает CORS
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://edu.sfu-kras.ru/timetable');
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    return parseGroupsFromHTML(html);
+  } catch(e) {
+    console.warn('Proxy fetch failed:', e);
+    // Fallback: тестовые данные
+    return getTestGroups();
+  }
+}
+
+function parseGroupsFromHTML(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const groups = new Set();
+
+  // Ищем ссылки с ?group=
+  doc.querySelectorAll('a[href*="?group="]').forEach(a => {
+    const name = a.textContent.trim();
+    if (name.length > 1 && name.length < 30) {
+      groups.add(decodeURIComponent(name));
+    }
+  });
+
+  const arr = [...groups].sort();
+  return arr.length > 0 ? arr : getTestGroups();
+}
+
+// ─── FETCH SCHEDULE ───
+async function fetchSchedule(group) {
+  try {
+    const url = `https://edu.sfu-kras.ru/timetable?group=${encodeURIComponent(group)}`;
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    return parseScheduleFromHTML(html);
+  } catch(e) {
+    console.warn('Schedule fetch failed:', e);
+    return getMockSchedule(group);
+  }
+}
+
+function parseScheduleFromHTML(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const schedule = {};
+  const days = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+
+  // Метод 1: ищем заголовки с названием дня
+  for (const day of days) {
+    const allText = doc.querySelectorAll('h2,h3,h4,div,th,td');
+    for (const el of allText) {
+      if (el.textContent.trim() === day) {
+        let table = el.closest('table') || el.nextElementSibling;
+        while (table && table.tagName !== 'TABLE') table = table.nextElementSibling;
+        if (table) {
+          const lessons = parseTable(table);
+          if (lessons.length) schedule[day] = lessons;
         }
+        break;
+      }
+    }
+  }
 
-        // Отображение групп
-        function displayGroups(groupsList) {
-            const container = document.getElementById('groupsContainer');
-            container.innerHTML = '';
+  // Метод 2: все таблицы подряд
+  if (Object.keys(schedule).length === 0) {
+    const tables = doc.querySelectorAll('table');
+    let idx = 0;
+    tables.forEach(table => {
+      const lessons = parseTable(table);
+      if (lessons.length && idx < days.length) {
+        schedule[days[idx++]] = lessons;
+      }
+    });
+  }
 
-            groupsList.forEach(group => {
-                const btn = document.createElement('button');
-                btn.className = 'group-btn';
-                btn.textContent = group;
-                btn.onclick = () => selectGroup(group);
-                container.appendChild(btn);
-            });
-        }
+  return schedule;
+}
 
-        // Фильтрация групп при поиске
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchText = e.target.value.toLowerCase();
-            const filtered = groups.filter(g => g.toLowerCase().includes(searchText));
-            displayGroups(filtered);
-        });
+function parseTable(table) {
+  const lessons = [];
+  const rows = table.querySelectorAll('tr');
+  rows.forEach((row, i) => {
+    if (i === 0) return; // заголовок
+    const cells = row.querySelectorAll('td,th');
+    if (cells.length < 2) return;
 
-        // Выбор группы
-        function selectGroup(group) {
-            currentGroup = group;
+    const timeRaw = cells[0].textContent.trim();
+    const subject = cells[1]?.textContent.trim();
+    const teacher = cells[2]?.textContent.trim() || '—';
+    const room = cells[3]?.textContent.trim() || '—';
 
-            // Переключаем экраны
-            document.getElementById('groupsScreen').style.display = 'none';
-            document.getElementById('scheduleScreen').style.display = 'block';
+    if (!timeRaw || !subject) return;
 
-            // Показываем загрузку
-            document.getElementById('scheduleContainer').innerHTML = `
-                <div class="loader">
-                    <div class="loader-spinner"></div>
-                    Загружаем расписание для ${group}...
-                </div>
-            `;
+    const formatted = formatTime(timeRaw);
+    const end = extractEndTime(timeRaw);
+    lessons.push({ time: formatted, name: subject, teacher: teacher || '—', room: room || '—', endTime: end });
+  });
+  return lessons;
+}
 
-            // Здесь будет запрос к серверу за расписанием
-            // Пока используем тестовые данные
-            setTimeout(() => {
-                loadMockSchedule(group);
-            }, 800);
-        }
+function formatTime(s) {
+  const m = s.match(/(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/);
+  if (m) return `${m[1].padStart(2,'0')}:${m[2]}–${m[3].padStart(2,'0')}:${m[4]}`;
+  return s;
+}
 
-        // Тестовое расписание (в реальности будет с сервера)
-        function loadMockSchedule(group) {
-            const mockSchedule = {
-                'Понедельник': [
-                    { time: '09:00-10:30', name: 'Математический анализ', teacher: 'Иванов И.И.', room: '301', endTime: '10:30' },
-                    { time: '10:45-12:15', name: 'Физика', teacher: 'Петров П.П.', room: '215', endTime: '12:15' },
-                    { time: '13:00-14:30', name: 'Программирование', teacher: 'Сидоров С.С.', room: '410', endTime: '14:30' },
-                    { time: '14:45-16:15', name: 'Английский язык', teacher: 'Козлова А.А.', room: '220', endTime: '16:15' }
-                ],
-                'Вторник': [
-                    { time: '09:00-10:30', name: 'Базы данных', teacher: 'Смирнова Е.В.', room: '320', endTime: '10:30' },
-                    { time: '10:45-12:15', name: 'Дискретная математика', teacher: 'Николаев Д.Н.', room: '405', endTime: '12:15' },
-                    { time: '13:00-14:30', name: 'Физкультура', teacher: 'Петров И.И.', room: 'Спортзал', endTime: '14:30' }
-                ],
-                'Среда': [
-                    { time: '09:00-10:30', name: 'История', teacher: 'Васильев В.В.', room: '207', endTime: '10:30' },
-                    { time: '10:45-12:15', name: 'Философия', teacher: 'Андреева М.А.', room: '115', endTime: '12:15' },
-                    { time: '13:00-14:30', name: 'Web-программирование', teacher: 'Соколов А.С.', room: '418', endTime: '14:30' }
-                ],
-                'Четверг': [
-                    { time: '10:45-12:15', name: 'Операционные системы', teacher: 'Волков В.В.', room: '330', endTime: '12:15' },
-                    { time: '13:00-14:30', name: 'Теория вероятностей', teacher: 'Зайцева Н.Н.', room: '208', endTime: '14:30' }
-                ],
-                'Пятница': [
-                    { time: '09:00-10:30', name: 'Правоведение', teacher: 'Соловьев С.С.', room: '101', endTime: '10:30' },
-                    { time: '10:45-12:15', name: 'Экономика', teacher: 'Лебедева Т.Т.', room: '112', endTime: '12:15' },
-                    { time: '13:00-14:30', name: 'Безопасность', teacher: 'Орлов О.О.', room: '205', endTime: '14:30' }
-                ],
-                'Суббота': [
-                    { time: '10:00-11:30', name: 'Факультатив', teacher: 'Григорьев Г.Г.', room: '310', endTime: '11:30' }
-                ]
-            };
+function extractEndTime(s) {
+  const m = s.match(/(\d{1,2})[:.](\d{2})/g);
+  if (m && m.length >= 2) return m[1].replace('.', ':');
+  return '';
+}
 
-            renderSchedule(mockSchedule);
-        }
+// ─── RENDER GROUPS ───
+function renderGroups(groups) {
+  const grid = document.getElementById('groupsGrid');
+  const label = document.getElementById('groupsLabel');
 
-        // Отрисовка расписания
-        function renderSchedule(schedule) {
-            const container = document.getElementById('scheduleContainer');
-            container.innerHTML = '';
+  if (!groups.length) {
+    grid.innerHTML = '<div class="no-results">Группы не найдены</div>';
+    return;
+  }
 
-            for (const [day, lessons] of Object.entries(schedule)) {
-                const dayCard = document.createElement('div');
-                dayCard.className = 'day-card';
+  label.textContent = `Все группы (${groups.length})`;
+  grid.innerHTML = '';
+  groups.forEach((g, i) => {
+    const chip = document.createElement('button');
+    chip.className = 'group-chip fade-up';
+    chip.style.animationDelay = Math.min(i * 0.03, 0.5) + 's';
+    chip.textContent = g;
+    chip.onclick = () => openGroup(g);
+    grid.appendChild(chip);
+  });
+}
 
-                let dayHTML = `<div class="day-title">${day}</div>`;
+// ─── OPEN GROUP ───
+async function openGroup(group) {
+  currentGroup = group;
 
-                lessons.forEach(lesson => {
-                    const timeUntil = lesson.endTime ? getTimeUntil(lesson.endTime) : null;
+  // Переключаем экраны
+  document.getElementById('searchScreen').style.display = 'none';
+  document.getElementById('scheduleScreen').style.display = 'block';
+  document.getElementById('backBtn').classList.add('visible');
+  document.getElementById('heroName').textContent = group;
+  document.getElementById('heroMeta').textContent = 'Загружаю расписание...';
+  document.getElementById('headerTitle').textContent = group;
+  document.getElementById('dayTabs').innerHTML = '';
+  document.getElementById('lessonsContainer').innerHTML = `
+    <div class="loader-wrap">
+      <div class="spinner"></div>
+      <div class="loader-text">Загружаю расписание...</div>
+    </div>`;
 
-                    dayHTML += `
-                        <div class="lesson-item">
-                            <div class="lesson-time">
-                                <span>⏰ ${lesson.time}</span>
-                                ${timeUntil ?
-                                    `<span class="countdown-timer">${timeUntil}</span>` :
-                                    '<span class="countdown-timer expired">Пара окончена</span>'}
-                            </div>
-                            <div class="lesson-name">📚 ${lesson.name}</div>
-                            <div class="lesson-details">
-                                <span>👨‍🏫 ${lesson.teacher}</span>
-                                <span>🏢 ${lesson.room}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+  // Тактильный фидбэк
+  if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
 
-                dayCard.innerHTML = dayHTML;
-                container.appendChild(dayCard);
-            }
+  try {
+    const schedule = await fetchSchedule(group);
+    currentSchedule = schedule;
+    const days = Object.keys(schedule);
 
-            // Запускаем обновление таймеров каждые 30 секунд
-            startTimerUpdates();
-        }
+    if (!days.length) {
+      document.getElementById('lessonsContainer').innerHTML = `
+        <div class="error-card">
+          <div class="error-icon">⚠️</div>
+          <div class="error-text">Расписание для группы <b>${group}</b> не найдено. Проверь название.</div>
+        </div>`;
+      document.getElementById('heroMeta').textContent = 'Данные не найдены';
+      return;
+    }
 
-        // Обновление таймеров
-        function startTimerUpdates() {
-            setInterval(() => {
-                document.querySelectorAll('.lesson-item').forEach(item => {
-                    const timeSpan = item.querySelector('.countdown-timer');
-                    if (timeSpan) {
-                        const timeText = item.querySelector('.lesson-time span:first-child').textContent;
-                        const endTimeMatch = timeText.match(/(\d{2}:\d{2})$/);
+    // Считаем пары
+    const totalLessons = Object.values(schedule).reduce((s, l) => s + l.length, 0);
+    document.getElementById('heroMeta').textContent = `${days.length} дней · ${totalLessons} пар`;
 
-                        if (endTimeMatch) {
-                            const endTime = endTimeMatch[1];
-                            const until = getTimeUntil(endTime);
+    // Рендерим вкладки дней
+    renderDayTabs(days);
 
-                            if (until) {
-                                timeSpan.textContent = until;
-                                timeSpan.classList.remove('expired');
-                            } else {
-                                timeSpan.textContent = 'Пара окончена';
-                                timeSpan.classList.add('expired');
-                            }
-                        }
-                    }
-                });
-            }, 30000); // Каждые 30 секунд
-        }
+    // Показываем сегодняшний день или первый
+    const todayIdx = getTodayIdx();
+    const todayName = DAYS[todayIdx];
+    const defaultDay = days.includes(todayName) ? todayName : days[0];
+    showDay(defaultDay);
 
-        // Кнопка назад к группам
-        document.getElementById('backToGroupsBtn').addEventListener('click', () => {
-            document.getElementById('groupsScreen').style.display = 'block';
-            document.getElementById('scheduleScreen').style.display = 'none';
-        });
+  } catch(e) {
+    console.error(e);
+    document.getElementById('lessonsContainer').innerHTML = `
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <div class="error-text">Ошибка загрузки. Попробуй ещё раз.</div>
+      </div>`;
+  }
+}
 
-        // Инициализация
-        displayGroups(groups.slice(0, 12));
-    </script>
+// ─── RENDER DAY TABS ───
+function renderDayTabs(days) {
+  const tabs = document.getElementById('dayTabs');
+  tabs.innerHTML = '';
+  const todayIdx = getTodayIdx();
+  const todayName = DAYS[todayIdx];
+
+  days.forEach(day => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (day === todayName ? ' today' : '');
+    btn.dataset.day = day;
+    btn.textContent = DAYS_SHORT[DAYS.indexOf(day)] || day.slice(0,2);
+    if (day === todayName) btn.textContent += ' ·';
+    btn.onclick = () => {
+      if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+      showDay(day);
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+// ─── SHOW DAY ───
+function showDay(day) {
+  currentDay = day;
+
+  // Обновляем табы
+  document.querySelectorAll('.day-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.day === day);
+  });
+
+  const lessons = currentSchedule[day] || [];
+  const container = document.getElementById('lessonsContainer');
+  container.innerHTML = '';
+
+  if (!lessons.length) {
+    container.innerHTML = `
+      <div class="empty-day">
+        <div class="empty-day-icon">🎉</div>
+        <div class="empty-day-text">Занятий нет</div>
+        <div class="empty-day-sub">Этот день свободен</div>
+      </div>`;
+    return;
+  }
+
+  const todayIdx = getTodayIdx();
+  const isToday = DAYS[todayIdx] === day;
+
+  lessons.forEach((lesson, i) => {
+    const status = isToday ? getLessonStatus(lesson.time) : 'unknown';
+    const countdown = isToday ? formatCountdown(lesson.time) : '';
+
+    const card = document.createElement('div');
+    card.className = 'lesson-card fade-up';
+    card.style.animationDelay = (i * 0.05) + 's';
+    if (status !== 'unknown') card.classList.add(status);
+
+    let badgeHTML = '';
+    if (status === 'ongoing' && countdown) {
+      badgeHTML = `<div class="status-badge badge-ongoing">${countdown}</div>`;
+    } else if (status === 'soon' && countdown) {
+      badgeHTML = `<div class="status-badge badge-soon">${countdown}</div>`;
+    }
+
+    const timeParts = lesson.time.split('–');
+    const timeStart = timeParts[0] || lesson.time;
+    const timeEnd = timeParts[1] || '';
+
+    card.innerHTML = `
+      <div class="lesson-time-col">
+        <div class="lesson-time-start">${timeStart}</div>
+        <div class="lesson-time-end">${timeEnd}</div>
+      </div>
+      <div class="lesson-body">
+        <div class="lesson-name">${lesson.name}</div>
+        <div class="lesson-info">
+          ${lesson.teacher !== '—' ? `<span class="lesson-tag">👤 ${lesson.teacher}</span>` : ''}
+          ${lesson.room !== '—' ? `<span class="lesson-tag">🚪 ${lesson.room}</span>` : ''}
+        </div>
+      </div>
+      ${badgeHTML}`;
+    container.appendChild(card);
+  });
+
+  // Автоскролл к активной паре
+  if (isToday) {
+    setTimeout(() => {
+      const ongoing = container.querySelector('.lesson-card.ongoing');
+      const soon = container.querySelector('.lesson-card.soon');
+      const target = ongoing || soon;
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 300);
+  }
+}
+
+// ─── BACK ───
+function goBack() {
+  currentGroup = null;
+  currentSchedule = {};
+
+  document.getElementById('scheduleScreen').style.display = 'none';
+  document.getElementById('searchScreen').style.display = 'block';
+  document.getElementById('backBtn').classList.remove('visible');
+  document.getElementById('headerTitle').textContent = 'СФУ Расписание';
+  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+
+// ─── ПОИСК ───
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) {
+    renderGroups(allGroups);
+    return;
+  }
+  const filtered = allGroups.filter(g => g.toLowerCase().includes(q));
+  document.getElementById('groupsLabel').textContent = `Результаты (${filtered.length})`;
+  const grid = document.getElementById('groupsGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="no-results">Ничего не найдено</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  filtered.forEach(g => {
+    const chip = document.createElement('button');
+    chip.className = 'group-chip';
+    chip.textContent = g;
+    chip.onclick = () => openGroup(g);
+    grid.appendChild(chip);
+  });
+});
+
+// Поиск по Enter
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const q = e.target.value.trim();
+    const filtered = allGroups.filter(g => g.toLowerCase().includes(q.toLowerCase()));
+    if (filtered.length === 1) openGroup(filtered[0]);
+    else if (q.length > 3) openGroup(q); // Попробовать напрямую
+  }
+});
+
+// ─── TOAST ───
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── ТЕСТОВЫЕ ДАННЫЕ ───
+function getTestGroups() {
+  return [
+    'ИСИТ-101','ИСИТ-102','ИСИТ-201','ИСИТ-202','ИСИТ-301','ИСИТ-401',
+    'ПИ-101','ПИ-201','ПИ-301','ПИ-401',
+    'ПМИ-101','ПМИ-201','ПМИ-301',
+    'ФИИТ-101','ФИИТ-201','ФИИТ-301',
+    'ИВТ-101','ИВТ-201','ИВТ-301',
+    'БИ-101','БИ-201','ПМ-101','ПМ-201',
+    'ПРИ-101','ПРИ-201','ФИ-101','ФИ-201',
+    'МО-101','МО-201','ИБ-101','ИБ-201'
+  ].sort();
+}
+
+function getMockSchedule(group) {
+  return {
+    'Понедельник': [
+      { time:'09:00–10:30', name:'Математический анализ', teacher:'Иванов И.И.', room:'А-301', endTime:'10:30' },
+      { time:'10:45–12:15', name:'Физика', teacher:'Петров П.П.', room:'Б-215', endTime:'12:15' },
+      { time:'13:00–14:30', name:'Программирование на Python', teacher:'Сидоров С.С.', room:'В-410', endTime:'14:30' },
+    ],
+    'Вторник': [
+      { time:'09:00–10:30', name:'Базы данных', teacher:'Смирнова Е.В.', room:'А-320', endTime:'10:30' },
+      { time:'10:45–12:15', name:'Дискретная математика', teacher:'Николаев Д.Н.', room:'Б-405', endTime:'12:15' },
+      { time:'13:00–14:30', name:'Физкультура', teacher:'Петров И.И.', room:'Спортзал', endTime:'14:30' },
+    ],
+    'Среда': [
+      { time:'09:00–10:30', name:'История России', teacher:'Васильев В.В.', room:'А-207', endTime:'10:30' },
+      { time:'10:45–12:15', name:'Web-программирование', teacher:'Соколов А.С.', room:'В-418', endTime:'12:15' },
+    ],
+    'Четверг': [
+      { time:'10:45–12:15', name:'Операционные системы', teacher:'Волков В.В.', room:'В-330', endTime:'12:15' },
+      { time:'13:00–14:30', name:'Теория вероятностей', teacher:'Зайцева Н.Н.', room:'А-208', endTime:'14:30' },
+    ],
+    'Пятница': [
+      { time:'09:00–10:30', name:'Правоведение', teacher:'Соловьев С.С.', room:'А-101', endTime:'10:30' },
+      { time:'10:45–12:15', name:'Экономика предприятия', teacher:'Лебедева Т.Т.', room:'Б-112', endTime:'12:15' },
+    ],
+  };
+}
+
+// ─── ОБНОВЛЕНИЕ ТАЙМЕРОВ ───
+setInterval(() => {
+  if (!currentGroup || !currentDay) return;
+  const todayIdx = getTodayIdx();
+  if (DAYS[todayIdx] !== currentDay) return;
+
+  document.querySelectorAll('.lesson-card').forEach((card, i) => {
+    const lessons = currentSchedule[currentDay] || [];
+    if (!lessons[i]) return;
+    const status = getLessonStatus(lessons[i].time);
+    card.classList.remove('ongoing','upcoming','soon','past','unknown');
+    if (status !== 'unknown') card.classList.add(status);
+
+    const badge = card.querySelector('.status-badge');
+    const countdown = formatCountdown(lessons[i].time);
+
+    if (status === 'ongoing' && countdown) {
+      if (badge) { badge.textContent = countdown; badge.className = 'status-badge badge-ongoing'; }
+      else {
+        const b = document.createElement('div');
+        b.className = 'status-badge badge-ongoing';
+        b.textContent = countdown;
+        card.appendChild(b);
+      }
+    } else if (status === 'soon' && countdown) {
+      if (badge) { badge.textContent = countdown; badge.className = 'status-badge badge-soon'; }
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}, 30000);
+
+// ─── ЗАПУСК ───
+init();
+</script>
 </body>
 </html>
