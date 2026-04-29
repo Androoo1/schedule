@@ -7,152 +7,181 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root { --accent: #2563EB; --bg: #F0F2F5; --surface: #FFFFFF; --text: #0F1117; --text2: #5C6370; --border: rgba(0,0,0,0.08); }
-@media (prefers-color-scheme: dark) { :root { --bg: #0D0F14; --surface: #161921; --text: #F0F2F5; --text2: #8B95A6; --border: rgba(255,255,255,0.08); } }
+/* ТВОИ ОРИГИНАЛЬНЫЕ СТИЛИ */
+:root {
+  --accent: #2563EB; --accent-soft: rgba(37,99,235,0.1);
+  --bg: #F0F2F5; --surface: #FFFFFF; --text: #0F1117; --text2: #5C6370;
+  --green: #16A34A; --orange: #EA580C; --border: rgba(0,0,0,0.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0D0F14; --surface: #161921; --text: #F0F2F5; --text2: #8B95A6; --border: rgba(255,255,255,0.08); }
+}
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
-body { background: var(--bg); color: var(--text); padding-bottom: 20px; }
-.header { position: sticky; top: 0; z-index: 10; background: var(--surface); padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+body { background: var(--bg); color: var(--text); padding-bottom: 30px; }
+
+.header { position: sticky; top:0; z-index:100; background: var(--surface); padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .header-title { font-weight: 700; font-size: 18px; }
-.btn-icon { background: none; border: none; font-size: 22px; cursor: pointer; padding: 4px; color: var(--text); }
-#searchScreen, #scheduleScreen { padding: 16px; }
-.search-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 16px; outline: none; margin-bottom: 16px; }
-.groups-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.group-card { background: var(--surface); padding: 12px; border-radius: 12px; text-align: center; font-weight: 600; border: 1px solid var(--border); }
-.day-tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px; scrollbar-width: none; }
-.day-tab { padding: 8px 16px; background: var(--surface); border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border); }
+
+.search-container { padding: 16px; }
+.search-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 16px; }
+
+.groups-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+.group-card { background: var(--surface); padding: 16px; border-radius: 12px; text-align: center; font-weight: 600; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+
+.day-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 16px; scrollbar-width: none; }
+.day-tab { padding: 8px 16px; background: var(--surface); border-radius: 20px; font-size: 14px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border); }
 .day-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-.lesson-card { background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 10px; border-left: 4px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-.lesson-time { font-size: 12px; color: var(--text2); font-weight: 700; }
-.lesson-name { font-size: 14px; font-weight: 600; margin: 4px 0; }
-.lesson-meta { font-size: 12px; color: var(--text2); }
-.fav-btn { color: #EAB308; }
-.loader { text-align: center; padding: 40px; color: var(--text2); }
+
+/* СТИЛИ КАРТОЧЕК ПАР */
+.lesson-card { background: var(--surface); margin: 0 16px 12px; padding: 16px; border-radius: 16px; border-left: 4px solid var(--accent); position: relative; }
+.lesson-time { font-weight: 700; font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.lesson-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; line-height: 1.3; }
+.lesson-info { font-size: 13px; color: var(--text2); display: flex; gap: 8px; }
+.status-badge { position: absolute; top: 16px; right: 16px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; }
+.badge-ongoing { background: var(--accent-soft); color: var(--accent); }
+
+.fav-btn { font-size: 24px; cursor: pointer; color: #EAB308; background: none; border: none; }
+#backBtn { background: none; border: none; font-size: 20px; color: var(--text); }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <button class="btn-icon" id="backBtn" onclick="goBack()" style="visibility:hidden">⬅️</button>
-  <div class="header-title" id="title">СФУ Расписание</div>
-  <button class="btn-icon fav-btn" id="favBtn" onclick="toggleFavorite()">☆</button>
+  <button id="backBtn" onclick="goBack()" style="display:none">⬅️</button>
+  <div class="header-title" id="mainTitle">СФУ Расписание</div>
+  <button class="fav-btn" onclick="toggleFav()" id="favStar">☆</button>
 </div>
 
-<div id="searchScreen">
-  <input type="text" class="search-input" id="searchInput" placeholder="Поиск (например: КИ24)..." oninput="handleSearch()">
-  <div class="groups-grid" id="groupsGrid"></div>
+<div id="searchPage">
+  <div class="search-container">
+    <input type="text" class="search-input" id="gSearch" placeholder="Поиск группы..." oninput="filterGroups()">
+  </div>
+  <div class="groups-grid" id="gGrid"></div>
 </div>
 
-<div id="scheduleScreen" style="display:none">
+<div id="schedulePage" style="display:none">
   <div class="day-tabs" id="dayTabs"></div>
-  <div id="lessons"></div>
+  <div id="lessonList"></div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-const TIME_GRID = {1:'08:30-10:05', 2:'10:15-11:50', 3:'12:00-13:35', 4:'14:10-15:45', 5:'15:55-17:30', 6:'17:40-19:15', 7:'19:25-21:00'};
 const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const TIMES = {1:'08:30-10:05', 2:'10:15-11:50', 3:'12:00-13:35', 4:'14:10-15:45', 5:'15:55-17:30', 6:'17:40-19:15', 7:'19:25-21:00'};
 
 let allGroups = [];
 let currentGroup = null;
-let scheduleData = {};
+let schedule = {};
 
-async function init() {
+async function load() {
   tg.expand();
-  const fav = localStorage.getItem('sfu_fav');
-  
-  const res = await fetch('https://edu.sfu-kras.ru/api/timetable/groups');
-  const data = await res.json();
-  allGroups = [...new Set(data.map(i => i.name))].sort();
-  
-  if (fav) {
-    openGroup(fav);
-  } else {
-    renderGroups(allGroups.slice(0, 20));
-  }
+  try {
+    const r = await fetch('https://edu.sfu-kras.ru/api/timetable/groups');
+    const d = await r.json();
+    allGroups = [...new Set(d.map(x => x.name))].sort();
+    
+    const fav = localStorage.getItem('fav_group');
+    if(fav) openGroup(fav);
+    else renderGroups(allGroups.slice(0, 20));
+  } catch(e) { console.error("Ошибка загрузки групп"); }
 }
 
 function renderGroups(list) {
-  const grid = document.getElementById('groupsGrid');
-  grid.innerHTML = list.map(g => `<div class="group-card" onclick="openGroup('${g}')">${g}</div>`).join('');
+  document.getElementById('gGrid').innerHTML = list.map(g => 
+    `<div class="group-card" onclick="openGroup('${g}')">${g}</div>`
+  ).join('');
 }
 
-function handleSearch() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = allGroups.filter(g => g.toLowerCase().includes(q)).slice(0, 30);
-  renderGroups(filtered);
+function filterGroups() {
+  const q = document.getElementById('gSearch').value.toLowerCase();
+  renderGroups(allGroups.filter(g => g.toLowerCase().includes(q)).slice(0, 30));
 }
 
 async function openGroup(name) {
   currentGroup = name;
-  document.getElementById('searchScreen').style.display = 'none';
-  document.getElementById('scheduleScreen').style.display = 'block';
-  document.getElementById('backBtn').style.visibility = 'visible';
-  document.getElementById('title').textContent = name;
-  updateFavIcon();
+  document.getElementById('searchPage').style.display = 'none';
+  document.getElementById('schedulePage').style.display = 'block';
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('mainTitle').textContent = name;
+  updateStar();
 
-  document.getElementById('lessons').innerHTML = '<div class="loader">Загрузка...</div>';
-  const res = await fetch(`https://edu.sfu-kras.ru/api/timetable/lessons?group=${encodeURIComponent(name)}`);
-  const data = await res.json();
+  document.getElementById('lessonList').innerHTML = '<p style="text-align:center;padding:20px">Загрузка...</p>';
   
-  scheduleData = {};
-  data.lessons.forEach(l => {
-    const d = DAYS[l.day-1];
-    if(!scheduleData[d]) scheduleData[d] = [];
-    scheduleData[d].push(l);
+  const r = await fetch(`https://edu.sfu-kras.ru/api/timetable/lessons?group=${encodeURIComponent(name)}`);
+  const d = await r.json();
+  
+  // Группировка
+  schedule = {};
+  d.lessons.forEach(l => {
+    const dayName = DAYS[l.day-1];
+    if(!schedule[dayName]) schedule[dayName] = [];
+    schedule[dayName].push(l);
   });
 
   renderTabs();
-  const today = DAYS[new Date().getDay()-1] || DAYS[0];
-  showDay(scheduleData[today] ? today : Object.keys(scheduleData)[0]);
+  const today = DAYS[new Date().getDay()-1] || 'Понедельник';
+  showDay(schedule[today] ? today : Object.keys(schedule)[0]);
 }
 
 function renderTabs() {
-  const tabs = document.getElementById('dayTabs');
-  tabs.innerHTML = Object.keys(scheduleData).map(d => `<div class="day-tab" id="tab-${d}" onclick="showDay('${d}')">${d.slice(0,2)}</div>`).join('');
+  const container = document.getElementById('dayTabs');
+  container.innerHTML = Object.keys(schedule).map(d => 
+    `<div class="day-tab" id="t-${d}" onclick="showDay('${d}')">${d.slice(0,3)}</div>`
+  ).join('');
 }
 
 function showDay(day) {
   document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-  if(document.getElementById(`tab-${day}`)) document.getElementById(`tab-${day}`).classList.add('active');
+  document.getElementById('t-'+day).classList.add('active');
 
-  const lessons = scheduleData[day] || [];
-  document.getElementById('lessons').innerHTML = lessons.sort((a,b)=>a.pair-b.pair).map(l => `
-    <div class="lesson-card">
-      <div class="lesson-time">${TIME_GRID[l.pair] || 'Пара '+l.pair}</div>
-      <div class="lesson-name">${l.subject}</div>
-      <div class="lesson-meta">${l.type} | ${l.place || '---'}</div>
-      <div class="lesson-meta">${l.week==1?'[нечет]':l.week==2?'[чет]':''}</div>
-    </div>
-  `).join('');
+  const list = document.getElementById('lessonList');
+  const lessons = schedule[day] || [];
+  
+  list.innerHTML = lessons.sort((a,b)=>a.pair-b.pair).map(l => {
+    const isNow = checkIsNow(l.pair); // твоя логика статуса
+    return `
+      <div class="lesson-card">
+        <div class="lesson-time">${TIMES[l.pair]}</div>
+        <div class="lesson-name">${l.subject}</div>
+        <div class="lesson-info">
+          <span>🚪 ${l.place || '—'}</span>
+          <span>👤 ${l.type}</span>
+        </div>
+        ${isNow ? '<div class="status-badge badge-ongoing">Идет сейчас</div>' : ''}
+      </div>
+    `;
+  }).join('');
 }
 
-function toggleFavorite() {
+function checkIsNow(pairNum) {
+  const now = new Date();
+  const timeStr = TIMES[pairNum];
+  if(!timeStr) return false;
+  const [start, end] = timeStr.split('-');
+  const s = new Date(); s.setHours(...start.split(':'), 0);
+  const e = new Date(); e.setHours(...end.split(':'), 0);
+  return now >= s && now <= e;
+}
+
+function toggleFav() {
   if(!currentGroup) return;
-  const fav = localStorage.getItem('sfu_fav');
-  if(fav === currentGroup) {
-    localStorage.removeItem('sfu_fav');
-  } else {
-    localStorage.setItem('sfu_fav', currentGroup);
-  }
-  updateFavIcon();
+  if(localStorage.getItem('fav_group') === currentGroup) localStorage.removeItem('fav_group');
+  else localStorage.setItem('fav_group', currentGroup);
+  updateStar();
 }
 
-function updateFavIcon() {
-  const fav = localStorage.getItem('sfu_fav');
-  document.getElementById('favBtn').textContent = (fav === currentGroup) ? '⭐' : '☆';
+function updateStar() {
+  document.getElementById('favStar').textContent = localStorage.getItem('fav_group') === currentGroup ? '⭐' : '☆';
 }
 
 function goBack() {
-  document.getElementById('searchScreen').style.display = 'block';
-  document.getElementById('scheduleScreen').style.display = 'none';
-  document.getElementById('backBtn').style.visibility = 'hidden';
-  document.getElementById('title').textContent = 'СФУ Расписание';
-  currentGroup = null;
-  renderGroups(allGroups.slice(0, 20));
-  updateFavIcon();
+  document.getElementById('searchPage').style.display = 'block';
+  document.getElementById('schedulePage').style.display = 'none';
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('mainTitle').textContent = 'СФУ Расписание';
 }
 
-init();
+load();
 </script>
 </body>
 </html>
