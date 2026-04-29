@@ -273,10 +273,6 @@ body {
   font-weight: 600;
   line-height: 1.35;
   margin-bottom: 6px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 .lesson-info {
   display: flex;
@@ -387,7 +383,6 @@ body {
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header" id="header">
   <div class="header-logo">📚</div>
   <div>
@@ -397,12 +392,11 @@ body {
   <button class="header-back" id="backBtn" onclick="goBack()">← Назад</button>
 </div>
 
-<!-- SEARCH SCREEN -->
 <div id="searchScreen">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
     <input class="search-input" id="searchInput"
-      placeholder="Введите группу: ИСИТ-101..."
+      placeholder="Введите группу: КИ25..."
       autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
 
@@ -410,7 +404,6 @@ body {
   <div class="groups-grid" id="groupsGrid"></div>
 </div>
 
-<!-- SCHEDULE SCREEN -->
 <div id="scheduleScreen">
   <div class="group-hero" id="groupHero">
     <div class="group-avatar">🎓</div>
@@ -424,7 +417,6 @@ body {
   <div class="lessons-list" id="lessonsContainer"></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -456,10 +448,21 @@ let currentDay = null;
 const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
 const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб'];
 
+// Точное расписание звонков СФУ
+const TIME_MAP = {
+  1: { start: '08:30', end: '10:05' },
+  2: { start: '10:15', end: '11:50' },
+  3: { start: '12:00', end: '13:35' },
+  4: { start: '14:10', end: '15:45' },
+  5: { start: '15:55', end: '17:30' },
+  6: { start: '17:40', end: '19:15' },
+  7: { start: '19:25', end: '21:00' }
+};
+
 // Индекс сегодняшнего дня (0=пн)
 function getTodayIdx() {
   const d = new Date().getDay();
-  return d === 0 ? 6 : d - 1;
+  return d === 0 ? 6 : d - 1; // Воскресенье -> 6
 }
 
 function getCurrentTime() {
@@ -524,7 +527,7 @@ async function init() {
   showLoader();
   allGroups = await fetchGroups();
   hideLoader();
-  renderGroups(allGroups);
+  renderGroups(allGroups); // Рендерит с ограничением, чтобы не лагало
 }
 
 function showLoader() {
@@ -539,126 +542,95 @@ function showLoader() {
 
 function hideLoader() {}
 
-// ─── FETCH GROUPS ───
+// ─── ПРЯМОЙ ЗАПРОС К JSON API СФУ ───
+async function safeFetch(targetUrl) {
+    // Сначала пробуем запросить напрямую
+    try {
+        const res = await fetch(targetUrl, { signal: AbortSignal.timeout(5000) });
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.warn("Direct fetch failed (likely CORS), switching to proxy...");
+    }
+    
+    // Если словили CORS, используем прокси
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+}
+
 async function fetchGroups() {
   try {
-    // Пробуем через CORS-proxy так как сайт СФУ не поддерживает CORS
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://edu.sfu-kras.ru/timetable');
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const html = await res.text();
-    return parseGroupsFromHTML(html);
+    const data = await safeFetch('https://edu.sfu-kras.ru/api/timetable/groups');
+    const groups = new Set();
+    data.forEach(item => {
+        if (item && item.name) groups.add(item.name);
+    });
+    
+    const arr = [...groups].sort();
+    return arr.length > 0 ? arr : getTestGroups();
   } catch(e) {
-    console.warn('Proxy fetch failed:', e);
-    // Fallback: тестовые данные
-    return getTestGroups();
+    console.error('API groups fetch failed:', e);
+    return getTestGroups(); // Возвращаем мок если сервер совсем упал
   }
 }
 
-function parseGroupsFromHTML(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const groups = new Set();
-
-  // Ищем ссылки с ?group=
-  doc.querySelectorAll('a[href*="?group="]').forEach(a => {
-    const name = a.textContent.trim();
-    if (name.length > 1 && name.length < 30) {
-      groups.add(decodeURIComponent(name));
-    }
-  });
-
-  const arr = [...groups].sort();
-  return arr.length > 0 ? arr : getTestGroups();
-}
-
-// ─── FETCH SCHEDULE ───
 async function fetchSchedule(group) {
   try {
-    const url = `https://edu.sfu-kras.ru/timetable?group=${encodeURIComponent(group)}`;
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const html = await res.text();
-    return parseScheduleFromHTML(html);
+    const targetUrl = `https://edu.sfu-kras.ru/api/timetable/lessons?group=${encodeURIComponent(group)}`;
+    const data = await safeFetch(targetUrl);
+    return parseScheduleFromJSON(data);
   } catch(e) {
-    console.warn('Schedule fetch failed:', e);
-    return getMockSchedule(group);
+    console.error('Schedule fetch failed:', e);
+    return {};
   }
 }
 
-function parseScheduleFromHTML(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+function parseScheduleFromJSON(data) {
   const schedule = {};
-  const days = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const daysMap = {1: 'Понедельник', 2: 'Вторник', 3: 'Среда', 4: 'Четверг', 5: 'Пятница', 6: 'Суббота'};
 
-  // Метод 1: ищем заголовки с названием дня
-  for (const day of days) {
-    const allText = doc.querySelectorAll('h2,h3,h4,div,th,td');
-    for (const el of allText) {
-      if (el.textContent.trim() === day) {
-        let table = el.closest('table') || el.nextElementSibling;
-        while (table && table.tagName !== 'TABLE') table = table.nextElementSibling;
-        if (table) {
-          const lessons = parseTable(table);
-          if (lessons.length) schedule[day] = lessons;
-        }
-        break;
-      }
-    }
-  }
+  if (!data || !data.lessons) return {};
 
-  // Метод 2: все таблицы подряд
-  if (Object.keys(schedule).length === 0) {
-    const tables = doc.querySelectorAll('table');
-    let idx = 0;
-    tables.forEach(table => {
-      const lessons = parseTable(table);
-      if (lessons.length && idx < days.length) {
-        schedule[days[idx++]] = lessons;
-      }
+  data.lessons.forEach(lesson => {
+    const dayName = daysMap[lesson.day];
+    if (!dayName) return;
+    if (!schedule[dayName]) schedule[dayName] = [];
+
+    const pair = lesson.pair || 1;
+    const times = TIME_MAP[pair] || {start: `${pair} пара`, end: ''};
+    const timeStr = `${times.start}–${times.end}`;
+
+    // Обработка недель
+    let weekStr = '';
+    if (lesson.week === 1) weekStr = ' [нечет]';
+    else if (lesson.week === 2) weekStr = ' [чет]';
+
+    const typeStr = lesson.type ? ` (${lesson.type})` : '';
+
+    schedule[dayName].push({
+      time: timeStr,
+      name: (lesson.subject || 'Без названия') + typeStr + weekStr,
+      teacher: lesson.teacher || '—',
+      room: lesson.place || '—',
+      endTime: times.end,
+      pairNum: pair,
+      week: lesson.week || 0
     });
-  }
+  });
+
+  // Сортируем пары по времени
+  Object.keys(schedule).forEach(day => {
+    schedule[day].sort((a, b) => {
+      if (a.pairNum !== b.pairNum) return a.pairNum - b.pairNum;
+      return a.week - b.week;
+    });
+  });
 
   return schedule;
 }
 
-function parseTable(table) {
-  const lessons = [];
-  const rows = table.querySelectorAll('tr');
-  rows.forEach((row, i) => {
-    if (i === 0) return; // заголовок
-    const cells = row.querySelectorAll('td,th');
-    if (cells.length < 2) return;
-
-    const timeRaw = cells[0].textContent.trim();
-    const subject = cells[1]?.textContent.trim();
-    const teacher = cells[2]?.textContent.trim() || '—';
-    const room = cells[3]?.textContent.trim() || '—';
-
-    if (!timeRaw || !subject) return;
-
-    const formatted = formatTime(timeRaw);
-    const end = extractEndTime(timeRaw);
-    lessons.push({ time: formatted, name: subject, teacher: teacher || '—', room: room || '—', endTime: end });
-  });
-  return lessons;
-}
-
-function formatTime(s) {
-  const m = s.match(/(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/);
-  if (m) return `${m[1].padStart(2,'0')}:${m[2]}–${m[3].padStart(2,'0')}:${m[4]}`;
-  return s;
-}
-
-function extractEndTime(s) {
-  const m = s.match(/(\d{1,2})[:.](\d{2})/g);
-  if (m && m.length >= 2) return m[1].replace('.', ':');
-  return '';
-}
-
-// ─── RENDER GROUPS ───
+// ─── RENDER GROUPS (Оптимизировано от лагов) ───
 function renderGroups(groups) {
   const grid = document.getElementById('groupsGrid');
   const label = document.getElementById('groupsLabel');
@@ -668,12 +640,21 @@ function renderGroups(groups) {
     return;
   }
 
-  label.textContent = `Все группы (${groups.length})`;
+  // Ограничиваем рендер 30 элементами, чтобы DOM не зависал
+  const limit = 30;
+  const displayGroups = groups.slice(0, limit);
+  
+  if (groups.length > limit) {
+      label.textContent = `Группы (показано ${limit} из ${groups.length})`;
+  } else {
+      label.textContent = `Все группы (${groups.length})`;
+  }
+
   grid.innerHTML = '';
-  groups.forEach((g, i) => {
+  displayGroups.forEach((g, i) => {
     const chip = document.createElement('button');
     chip.className = 'group-chip fade-up';
-    chip.style.animationDelay = Math.min(i * 0.03, 0.5) + 's';
+    chip.style.animationDelay = Math.min(i * 0.02, 0.3) + 's';
     chip.textContent = g;
     chip.onclick = () => openGroup(g);
     grid.appendChild(chip);
@@ -684,7 +665,6 @@ function renderGroups(groups) {
 async function openGroup(group) {
   currentGroup = group;
 
-  // Переключаем экраны
   document.getElementById('searchScreen').style.display = 'none';
   document.getElementById('scheduleScreen').style.display = 'block';
   document.getElementById('backBtn').classList.add('visible');
@@ -698,7 +678,6 @@ async function openGroup(group) {
       <div class="loader-text">Загружаю расписание...</div>
     </div>`;
 
-  // Тактильный фидбэк
   if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
 
   try {
@@ -710,20 +689,17 @@ async function openGroup(group) {
       document.getElementById('lessonsContainer').innerHTML = `
         <div class="error-card">
           <div class="error-icon">⚠️</div>
-          <div class="error-text">Расписание для группы <b>${group}</b> не найдено. Проверь название.</div>
+          <div class="error-text">Расписание для группы <b>${group}</b> не найдено или оно пустое.</div>
         </div>`;
       document.getElementById('heroMeta').textContent = 'Данные не найдены';
       return;
     }
 
-    // Считаем пары
     const totalLessons = Object.values(schedule).reduce((s, l) => s + l.length, 0);
     document.getElementById('heroMeta').textContent = `${days.length} дней · ${totalLessons} пар`;
 
-    // Рендерим вкладки дней
     renderDayTabs(days);
 
-    // Показываем сегодняшний день или первый
     const todayIdx = getTodayIdx();
     const todayName = DAYS[todayIdx];
     const defaultDay = days.includes(todayName) ? todayName : days[0];
@@ -764,7 +740,6 @@ function renderDayTabs(days) {
 function showDay(day) {
   currentDay = day;
 
-  // Обновляем табы
   document.querySelectorAll('.day-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.day === day);
   });
@@ -822,7 +797,6 @@ function showDay(day) {
     container.appendChild(card);
   });
 
-  // Автоскролл к активной паре
   if (isToday) {
     setTimeout(() => {
       const ongoing = container.querySelector('.lesson-card.ongoing');
@@ -853,29 +827,15 @@ document.getElementById('searchInput').addEventListener('input', e => {
     return;
   }
   const filtered = allGroups.filter(g => g.toLowerCase().includes(q));
-  document.getElementById('groupsLabel').textContent = `Результаты (${filtered.length})`;
-  const grid = document.getElementById('groupsGrid');
-  if (!filtered.length) {
-    grid.innerHTML = '<div class="no-results">Ничего не найдено</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  filtered.forEach(g => {
-    const chip = document.createElement('button');
-    chip.className = 'group-chip';
-    chip.textContent = g;
-    chip.onclick = () => openGroup(g);
-    grid.appendChild(chip);
-  });
+  renderGroups(filtered);
 });
 
-// Поиск по Enter
 document.getElementById('searchInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     const q = e.target.value.trim();
     const filtered = allGroups.filter(g => g.toLowerCase().includes(q.toLowerCase()));
     if (filtered.length === 1) openGroup(filtered[0]);
-    else if (q.length > 3) openGroup(q); // Попробовать напрямую
+    else if (q.length > 3) openGroup(q); 
   }
 });
 
@@ -889,43 +849,7 @@ function showToast(text) {
 
 // ─── ТЕСТОВЫЕ ДАННЫЕ ───
 function getTestGroups() {
-  return [
-    'ИСИТ-101','ИСИТ-102','ИСИТ-201','ИСИТ-202','ИСИТ-301','ИСИТ-401',
-    'ПИ-101','ПИ-201','ПИ-301','ПИ-401',
-    'ПМИ-101','ПМИ-201','ПМИ-301',
-    'ФИИТ-101','ФИИТ-201','ФИИТ-301',
-    'ИВТ-101','ИВТ-201','ИВТ-301',
-    'БИ-101','БИ-201','ПМ-101','ПМ-201',
-    'ПРИ-101','ПРИ-201','ФИ-101','ФИ-201',
-    'МО-101','МО-201','ИБ-101','ИБ-201'
-  ].sort();
-}
-
-function getMockSchedule(group) {
-  return {
-    'Понедельник': [
-      { time:'09:00–10:30', name:'Математический анализ', teacher:'Иванов И.И.', room:'А-301', endTime:'10:30' },
-      { time:'10:45–12:15', name:'Физика', teacher:'Петров П.П.', room:'Б-215', endTime:'12:15' },
-      { time:'13:00–14:30', name:'Программирование на Python', teacher:'Сидоров С.С.', room:'В-410', endTime:'14:30' },
-    ],
-    'Вторник': [
-      { time:'09:00–10:30', name:'Базы данных', teacher:'Смирнова Е.В.', room:'А-320', endTime:'10:30' },
-      { time:'10:45–12:15', name:'Дискретная математика', teacher:'Николаев Д.Н.', room:'Б-405', endTime:'12:15' },
-      { time:'13:00–14:30', name:'Физкультура', teacher:'Петров И.И.', room:'Спортзал', endTime:'14:30' },
-    ],
-    'Среда': [
-      { time:'09:00–10:30', name:'История России', teacher:'Васильев В.В.', room:'А-207', endTime:'10:30' },
-      { time:'10:45–12:15', name:'Web-программирование', teacher:'Соколов А.С.', room:'В-418', endTime:'12:15' },
-    ],
-    'Четверг': [
-      { time:'10:45–12:15', name:'Операционные системы', teacher:'Волков В.В.', room:'В-330', endTime:'12:15' },
-      { time:'13:00–14:30', name:'Теория вероятностей', teacher:'Зайцева Н.Н.', room:'А-208', endTime:'14:30' },
-    ],
-    'Пятница': [
-      { time:'09:00–10:30', name:'Правоведение', teacher:'Соловьев С.С.', room:'А-101', endTime:'10:30' },
-      { time:'10:45–12:15', name:'Экономика предприятия', teacher:'Лебедева Т.Т.', room:'Б-112', endTime:'12:15' },
-    ],
-  };
+  return ['ИСИТ-101','ИСИТ-102','КИ25-04б','ПИ-101','ПИ-201','ПМИ-101','ФИИТ-101','ИВТ-101','БИ-101'].sort();
 }
 
 // ─── ОБНОВЛЕНИЕ ТАЙМЕРОВ ───
