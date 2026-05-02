@@ -8,216 +8,143 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --accent: #2563EB;
-  --accent2: #7C3AED;
-  --accent-soft: rgba(37,99,235,0.10);
-  --accent-border: rgba(37,99,235,0.25);
-  --bg: #F0F2F5;
-  --surface: #FFFFFF;
-  --surface2: #F4F6F9;
-  --text: #0F1117;
-  --text2: #5C6370;
-  --text3: #9BA3AF;
-  --border: rgba(0,0,0,0.07);
-  --green: #16A34A; --green-s: rgba(22,163,74,0.10);
-  --orange: #D97706; --orange-s: rgba(217,119,6,0.10);
-  --red: #DC2626; --red-s: rgba(220,38,38,0.10);
-  --r: 14px; --r-sm: 10px; --r-pill: 100px;
+  --accent:#2563EB; --accent2:#7C3AED;
+  --as:rgba(37,99,235,.10); --ab:rgba(37,99,235,.22);
+  --bg:#F0F2F5; --sf:#FFF; --sf2:#F4F6F9;
+  --tx:#0F1117; --tx2:#5C6370; --tx3:#9BA3AF;
+  --bd:rgba(0,0,0,.07);
+  --gr:#16A34A; --gs:rgba(22,163,74,.10);
+  --or:#D97706; --os:rgba(217,119,6,.10);
+  --re:#DC2626; --rs:rgba(220,38,38,.10);
+  --r:14px; --rs2:10px; --rp:100px;
 }
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#0D0F14; --surface:#161921; --surface2:#1E2230;
-    --text:#F0F2F5; --text2:#8B95A6; --text3:#4D5566;
-    --border:rgba(255,255,255,0.07);
-    --accent-soft:rgba(99,150,255,0.12);
-    --accent-border:rgba(99,150,255,0.25);
-    --green-s:rgba(34,197,94,0.10);
-    --orange-s:rgba(251,191,36,0.10);
-    --red-s:rgba(248,113,113,0.10);
+    --bg:#0D0F14;--sf:#161921;--sf2:#1E2230;
+    --tx:#F0F2F5;--tx2:#8B95A6;--tx3:#4D5566;
+    --bd:rgba(255,255,255,.07);
+    --as:rgba(99,150,255,.12);--ab:rgba(99,150,255,.25);
+    --gs:rgba(34,197,94,.10);--os:rgba(251,191,36,.10);--rs:rgba(248,113,113,.10);
   }
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden;min-height:100vh}
 
-/* ── HEADER ─────────────────────── */
-.hdr{
-  position:sticky;top:0;z-index:200;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  padding:14px 16px;
-  display:flex;align-items:center;gap:10px;
-}
-.hdr-icon{
-  width:34px;height:34px;border-radius:10px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;flex-shrink:0;
-}
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:200;background:var(--sf);border-bottom:1px solid var(--bd);padding:13px 16px;display:flex;align-items:center;gap:10px}
+.hdr-ico{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .hdr-info{flex:1;min-width:0}
-.hdr-title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr-sub{font-size:11px;color:var(--text3);margin-top:1px}
-.hdr-back{
-  display:none;align-items:center;gap:4px;
-  background:var(--surface2);border:none;border-radius:8px;
-  padding:6px 12px;font-size:13px;font-weight:600;
-  color:var(--accent);cursor:pointer;flex-shrink:0;
-}
-.hdr-back.show{display:flex}
+.hdr-t{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-s{font-size:11px;color:var(--tx3);margin-top:1px}
+.hdr-back{display:none;align-items:center;gap:4px;background:var(--sf2);border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;flex-shrink:0}
+.hdr-back.on{display:flex}
 
-/* ── SEARCH SCREEN ───────────────── */
-#searchScreen{padding:14px 16px 24px}
-.s-wrap{position:relative;margin-bottom:18px}
-.s-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.4;pointer-events:none}
-.s-input{
-  width:100%;padding:12px 14px 12px 38px;
-  border:1.5px solid var(--border);border-radius:var(--r);
-  font-size:15px;font-family:inherit;
-  background:var(--surface);color:var(--text);outline:none;
-  transition:border-color .2s,box-shadow .2s;
-}
-.s-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.s-input::placeholder{color:var(--text3)}
-.sec-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+/* SEARCH */
+#pg-search{padding:14px 16px 24px}
+.s-wrap{position:relative;margin-bottom:16px}
+.s-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.4;pointer-events:none}
+.s-inp{width:100%;padding:12px 14px 12px 38px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:15px;font-family:inherit;background:var(--sf);color:var(--tx);outline:none;transition:border-color .2s,box-shadow .2s}
+.s-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--as)}
+.s-inp::placeholder{color:var(--tx3)}
+.sec-lbl{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
 
-/* ── GROUPS GRID ─────────────────── */
+/* GROUPS GRID */
 .g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:20px}
-.g-chip{
-  background:var(--surface);
-  border:1.5px solid var(--border);
-  border-radius:var(--r-sm);
-  padding:11px 6px;
-  text-align:center;font-size:13px;font-weight:600;
-  cursor:pointer;color:var(--text);
-  transition:all .15s;user-select:none;
-}
-.g-chip:active{transform:scale(.94);background:var(--accent-soft);border-color:var(--accent-border);color:var(--accent)}
+.g-chip{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rs2);padding:11px 6px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx);transition:all .15s;user-select:none}
+.g-chip:active{transform:scale(.94);background:var(--as);border-color:var(--ab);color:var(--accent)}
 
-/* ── LOADER ──────────────────────── */
+/* LOADER */
 .loader{display:flex;flex-direction:column;align-items:center;padding:48px 20px;gap:12px}
-.spin{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.spin{width:30px;height:30px;border:3px solid var(--bd);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loader p{font-size:13px;color:var(--text2)}
+.loader p{font-size:13px;color:var(--tx2)}
 
-/* ── SCHEDULE SCREEN ─────────────── */
-#scheduleScreen{display:none;padding:14px 16px 32px}
-
-/* GROUP HERO */
-.g-hero{
-  background:var(--surface);border-radius:var(--r);
-  padding:14px 16px;margin-bottom:14px;
-  display:flex;align-items:center;gap:12px;
-}
-.g-hero-av{
-  width:42px;height:42px;border-radius:12px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-size:20px;
-}
-.g-hero-name{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.g-hero-meta{font-size:12px;color:var(--text2);margin-top:2px}
+/* SCHEDULE */
+#pg-sched{display:none;padding:14px 16px 32px}
+.g-hero{background:var(--sf);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.g-av{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px}
+.g-nm{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.g-mt{font-size:12px;color:var(--tx2);margin-top:2px}
 
 /* DAY TABS */
 .d-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
 .d-tabs::-webkit-scrollbar{display:none}
-.d-tab{
-  flex-shrink:0;padding:7px 14px;border-radius:var(--r-pill);
-  font-size:12px;font-weight:700;border:none;cursor:pointer;
-  background:var(--surface);color:var(--text2);transition:all .15s;
-  white-space:nowrap;
-}
+.d-tab{flex-shrink:0;padding:7px 14px;border-radius:var(--rp);font-size:12px;font-weight:700;border:none;cursor:pointer;background:var(--sf);color:var(--tx2);transition:all .15s;white-space:nowrap}
 .d-tab.today{color:var(--accent)}
 .d-tab.active{background:var(--accent);color:#fff}
 .d-tab.today.active{color:#fff}
-.d-tab .d-dot{display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle}
+.d-dot{display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle}
 
 /* LESSON CARDS */
 .l-list{display:flex;flex-direction:column;gap:9px}
-.l-card{
-  background:var(--surface);border-radius:var(--r);
-  padding:13px 14px 13px 18px;
-  display:flex;gap:12px;align-items:flex-start;
-  position:relative;overflow:hidden;
-  transition:transform .12s;
-}
+.l-card{background:var(--sf);border-radius:var(--r);padding:13px 14px 13px 18px;display:flex;gap:12px;align-items:flex-start;position:relative;overflow:hidden;transition:transform .12s}
 .l-card:active{transform:scale(.98)}
 .l-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3.5px;background:var(--accent);border-radius:3px 0 0 3px}
-.l-card.ongoing::before{background:var(--green)}
-.l-card.soon::before{background:var(--orange)}
+.l-card.ongoing::before{background:var(--gr)}
+.l-card.soon::before{background:var(--or)}
 .l-card.past{opacity:.5}
-.l-card.past::before{background:var(--text3)}
+.l-card.past::before{background:var(--tx3)}
 
-.l-time-col{min-width:54px;flex-shrink:0;padding-top:1px}
-.l-time-s{font-size:14px;font-weight:700;line-height:1}
-.l-time-e{font-size:11px;color:var(--text3);margin-top:3px}
-.l-pair-num{font-size:10px;color:var(--text3);margin-top:4px}
-
+.l-tc{min-width:54px;flex-shrink:0;padding-top:1px}
+.l-ts{font-size:14px;font-weight:700;line-height:1}
+.l-te{font-size:11px;color:var(--tx3);margin-top:3px}
+.l-pn{font-size:10px;color:var(--tx3);margin-top:4px}
 .l-body{flex:1;min-width:0}
 .l-name{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:6px}
 .l-tags{display:flex;flex-wrap:wrap;gap:5px}
-.l-tag{
-  font-size:11px;font-weight:500;padding:3px 8px;
-  border-radius:6px;background:var(--surface2);color:var(--text2);
-  white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;
-}
-.l-tag.type{background:var(--accent-soft);color:var(--accent)}
-.l-tag.week{background:var(--orange-s);color:var(--orange)}
-
-.l-badge{
-  font-size:10px;font-weight:700;padding:3px 8px;
-  border-radius:var(--r-pill);white-space:nowrap;
-  align-self:flex-start;flex-shrink:0;margin-top:1px;
-}
-.b-ongoing{background:var(--green-s);color:var(--green)}
-.b-soon{background:var(--orange-s);color:var(--orange)}
+.l-tag{font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--sf2);color:var(--tx2);white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.l-tag.tp{background:var(--as);color:var(--accent)}
+.l-tag.wk{background:var(--os);color:var(--or)}
+.l-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:var(--rp);white-space:nowrap;align-self:flex-start;flex-shrink:0;margin-top:1px}
+.b-on{background:var(--gs);color:var(--gr)}
+.b-sn{background:var(--os);color:var(--or)}
 
 /* EMPTY / ERROR */
-.empty{text-align:center;padding:44px 20px;color:var(--text2)}
+.empty{text-align:center;padding:44px 20px;color:var(--tx2)}
 .empty-ico{font-size:42px;margin-bottom:12px}
 .empty-t{font-size:15px;font-weight:600}
-.empty-s{font-size:13px;color:var(--text3);margin-top:4px}
-.err-box{
-  background:var(--red-s);border:1px solid rgba(220,38,38,.2);
-  border-radius:var(--r);padding:14px 16px;
-  display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;
-}
-.err-box p{font-size:13px;font-weight:500;color:var(--red)}
+.empty-s{font-size:13px;color:var(--tx3);margin-top:4px}
+.err{background:var(--rs);border:1px solid rgba(220,38,38,.2);border-radius:var(--r);padding:14px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+.err p{font-size:13px;font-weight:500;color:var(--re)}
 
-/* FADE-UP */
 @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fu .22s ease forwards}
+
+/* CONFIG BANNER */
+.cfg-banner{background:var(--os);border:1px solid var(--or);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--or);margin-bottom:14px;display:none}
+.cfg-banner.show{display:block}
+.cfg-banner b{font-weight:700}
 </style>
 </head>
 <body>
 
 <div class="hdr" id="hdr">
-  <div class="hdr-icon">📚</div>
+  <div class="hdr-ico">📚</div>
   <div class="hdr-info">
-    <div class="hdr-title" id="hTitle">СФУ Расписание</div>
-    <div class="hdr-sub" id="hSub"></div>
+    <div class="hdr-t" id="hTitle">СФУ Расписание</div>
+    <div class="hdr-s" id="hSub"></div>
   </div>
   <button class="hdr-back" id="backBtn" onclick="goBack()">← Назад</button>
 </div>
 
-<!-- ПОИСК ГРУПП -->
-<div id="searchScreen">
+<div id="pg-search">
   <div class="s-wrap">
-    <span class="s-icon">🔍</span>
-    <input class="s-input" id="sInput" placeholder="Поиск группы: КИ, ПИ-20, ИСИТ…"
+    <span class="s-ico">🔍</span>
+    <input class="s-inp" id="sInp" placeholder="Поиск группы: КИ, ПИ-20, ИСИТ…"
       autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
-  <div class="sec-label" id="gLabel">Группы</div>
+  <div class="sec-lbl" id="gLbl">Группы</div>
   <div class="g-grid" id="gGrid">
     <div style="grid-column:1/-1"><div class="loader"><div class="spin"></div><p>Загружаю список…</p></div></div>
   </div>
 </div>
 
-<!-- РАСПИСАНИЕ -->
-<div id="scheduleScreen">
+<div id="pg-sched">
   <div class="g-hero">
-    <div class="g-hero-av">🎓</div>
+    <div class="g-av">🎓</div>
     <div>
-      <div class="g-hero-name" id="gName">—</div>
-      <div class="g-hero-meta" id="gMeta">—</div>
+      <div class="g-nm" id="gNm">—</div>
+      <div class="g-mt" id="gMt">—</div>
     </div>
   </div>
   <div class="d-tabs" id="dTabs"></div>
@@ -225,360 +152,517 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 </div>
 
 <script>
-/* ── TG INIT ─────────────────────── */
+/* ─── КОНФИГУРАЦИЯ ─────────────────────────────────
+   ВАЖНО: укажи IP/домен сервера где запущен bot.py
+   Если запущено локально для тестов: http://localhost:8080
+   Если на VPS: http://1.2.3.4:8080 или https://yourdomain.com
+   
+   Если оставить пустым — будет работать fallback через
+   corsproxy.io (медленнее, не всегда доступен)
+─────────────────────────────────────────────────── */
+const API_BASE = "";  // ← ВСТАВЬ СЮДА URL твоего сервера, например: "http://1.2.3.4:8080"
+
+/* ─── TG INIT ─── */
 const tg = window.Telegram.WebApp;
 tg.expand(); tg.ready();
-
-/* Применяем цвета из темы TG */
 try {
   const tp = tg.themeParams || {};
   const s = document.documentElement.style;
-  if(tp.bg_color)           s.setProperty('--bg', tp.bg_color);
-  if(tp.secondary_bg_color) s.setProperty('--surface', tp.secondary_bg_color);
-  if(tp.text_color)         s.setProperty('--text', tp.text_color);
-  if(tp.hint_color)         s.setProperty('--text2', tp.hint_color);
-  if(tp.button_color)       s.setProperty('--accent', tp.button_color);
-  if(tp.button_text_color)  s.setProperty('--btn-text', tp.button_text_color);
+  if(tp.bg_color)            s.setProperty('--bg', tp.bg_color);
+  if(tp.secondary_bg_color)  s.setProperty('--sf', tp.secondary_bg_color);
+  if(tp.text_color)          s.setProperty('--tx', tp.text_color);
+  if(tp.hint_color)          s.setProperty('--tx2', tp.hint_color);
+  if(tp.button_color)        s.setProperty('--accent', tp.button_color);
 } catch(e){}
 
-/* ── КОНСТАНТЫ ───────────────────── */
+/* ─── КОНСТАНТЫ ─── */
 const PAIR_TIMES = {
   1:['08:30','10:05'], 2:['10:15','11:50'], 3:['12:00','13:35'],
   4:['14:10','15:45'], 5:['15:55','17:30'], 6:['17:40','19:15'], 7:['19:25','21:00']
 };
-const DAYS_ORDER = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
-const DAYS_MAP   = {1:'Понедельник',2:'Вторник',3:'Среда',4:'Четверг',5:'Пятница',6:'Суббота',7:'Воскресенье'};
-const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб'];
+const DAYS_ORDER  = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const DAYS_SHORT  = ['Пн','Вт','Ср','Чт','Пт','Сб'];
+const DAYS_BY_IDX = {1:'Понедельник',2:'Вторник',3:'Среда',4:'Четверг',5:'Пятница',6:'Суббота'};
 
-/* ── СОСТОЯНИЕ ───────────────────── */
+/* ─── СОСТОЯНИЕ ─── */
 let allGroups = [];
-let schedule  = {};        // { "Понедельник": [...], ... }
+let schedule  = {};
 let curGroup  = null;
 let curDay    = null;
 let timerID   = null;
 
-/* ── УТИЛИТЫ ВРЕМЕНИ ─────────────── */
-function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+/* ─── API ЗАПРОСЫ ─────────────────────────────────
+   Три уровня fallback:
+   1. Свой сервер (bot.py) — если задан API_BASE
+   2. corsproxy.io → edu.sfu-kras.ru/api/...
+   3. corsproxy.io → HTML страница (парсинг в браузере)
+─────────────────────────────────────────────────── */
+async function apiFetch(path) {
+  const errors = [];
 
-function parseMin(str){
-  const m = str.match(/(\d{1,2}):(\d{2})/);
-  return m ? +m[1]*60 + +m[2] : null;
-}
-
-function status(lesson){
-  const now = nowMin();
-  const [ts, te] = (lesson.time||'').split('–');
-  const s = parseMin(ts), e = parseMin(te);
-  if(s===null||e===null) return 'unknown';
-  if(now>=s && now<=e)   return 'ongoing';
-  if(now<s){
-    if(s-now<=15) return 'soon';
-    return 'upcoming';
+  // 1. Свой сервер
+  if(API_BASE) {
+    try {
+      const r = await fetch(API_BASE + path, {signal: AbortSignal.timeout(8000)});
+      if(r.ok) return await r.json();
+    } catch(e) { errors.push('own:' + e.message); }
   }
-  return 'past';
-}
 
-function countdown(lesson){
-  const now = nowMin();
-  const [ts,te] = (lesson.time||'').split('–');
-  const s=parseMin(ts), e=parseMin(te);
-  if(s===null||e===null) return '';
-  if(now>=s && now<=e){ const l=e-now; return l<1?'Заканчивается':`Ещё ${l<60?l+'мин':Math.floor(l/60)+'ч '+l%60+'мин'}`; }
-  if(now<s && s-now<=15) return `Через ${s-now}мин`;
-  return '';
-}
-
-function todayDayName(){
-  const d=new Date().getDay(); // 0=вс
-  return DAYS_MAP[d===0?7:d] || null;
-}
-
-/* ── ЗАГРУЗКА ГРУПП ──────────────── */
-async function loadGroups(){
-  try{
-    const r = await fetch('https://edu.sfu-kras.ru/api/timetable/groups');
-    if(!r.ok) throw new Error(r.status);
-    const data = await r.json();
-    // API возвращает [{name:"..."}, ...] или ["...", ...]
-    allGroups = [...new Set(
-      data.map(x => typeof x==='string' ? x : x.name).filter(Boolean)
-    )].sort();
-  } catch(e){
-    console.warn('Groups fetch failed:', e);
-    allGroups = [];
+  // 2. CORS-прокси → JSON API СФУ
+  const sfuPath = path.replace('/api/groups', '/api/timetable/groups')
+                      .replace('/api/schedule', '/api/timetable/lessons');
+  const sfuUrl = 'https://edu.sfu-kras.ru' + sfuPath;
+  
+  for(const proxy of [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+  ]) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(sfuUrl), {signal: AbortSignal.timeout(10000)});
+      if(r.ok) {
+        const text = await r.text();
+        try { return JSON.parse(text); } catch(e) { errors.push('json_parse:'+e); }
+      }
+    } catch(e) { errors.push('proxy:' + e.message); }
   }
-  renderGroups(allGroups.slice(0,40));
-  updateHdrSub();
+
+  console.warn('apiFetch errors for', path, errors);
+  return null;
 }
 
-/* ── ЗАГРУЗКА РАСПИСАНИЯ ─────────── */
-async function loadSchedule(group){
-  const url = `https://edu.sfu-kras.ru/api/timetable/lessons?group=${encodeURIComponent(group)}`;
-  const r = await fetch(url);
-  if(!r.ok) throw new Error(r.status);
-  const data = await r.json();
+async function fetchHtmlSchedule(group) {
+  const url = `https://edu.sfu-kras.ru/timetable?group=${encodeURIComponent(group)}`;
+  for(const proxy of [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+  ]) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(12000)});
+      if(r.ok) {
+        const html = await r.text();
+        return parseHTMLSchedule(html);
+      }
+    } catch(e) { continue; }
+  }
+  return null;
+}
 
-  // data может быть { lessons: [...] } или [...] напрямую
-  const raw = Array.isArray(data) ? data : (data.lessons || []);
+/* ─── HTML ПАРСИНГ (клиентский fallback) ─── */
+function parseHTMLSchedule(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const lessons = [];
 
-  const sched = {};
-  raw.forEach(item => {
-    const dayIdx = item.day ?? item.weekday;
-    const dayName = DAYS_MAP[dayIdx];
-    if(!dayName) return;
+  const pairTimesArr = Object.entries(PAIR_TIMES);
 
-    const pair = item.pair ?? item.number ?? item.lesson ?? 0;
-    const times = PAIR_TIMES[pair] || ['—','—'];
-    const timeStr = times[0]!=='—' ? `${times[0]}–${times[1]}` : '—';
+  // Ищем все таблицы
+  const tables = doc.querySelectorAll('table');
+  tables.forEach(table => {
+    let currentDay = null;
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      // Заголовок дня
+      const ths = row.querySelectorAll('th');
+      if(ths.length > 0) {
+        const txt = ths[0].textContent.trim();
+        for(const d of DAYS_ORDER) {
+          if(txt.includes(d)) { currentDay = d; return; }
+        }
+      }
+      // Строка с данными пары
+      if(!currentDay) return;
+      const tds = row.querySelectorAll('td');
+      if(tds.length < 2) return;
 
-    let week = item.week;
-    if(typeof week==='number') week = week===1?'нечетная':'четная';
-    if(!['нечетная','четная'].includes(week)) week='обе';
-
-    sched[dayName] = sched[dayName] || [];
-    sched[dayName].push({
-      pair:    +pair,
-      time:    timeStr,
-      subject: item.subject || item.name || item.discipline || '—',
-      teacher: item.teacher || item.lecturer || '—',
-      room:    item.place   || item.room     || item.auditory || '—',
-      type:    item.type    || item.kind     || '',
-      week,
+      const lesson = extractLesson([...tds], currentDay);
+      if(lesson) lessons.push(lesson);
     });
   });
 
-  // Сортировка внутри дня по номеру пары
-  Object.keys(sched).forEach(d => sched[d].sort((a,b)=>a.pair-b.pair));
+  // Fallback: ищем заголовки-теги
+  if(!lessons.length) {
+    for(const day of DAYS_ORDER) {
+      const allEls = doc.querySelectorAll('h2,h3,h4,b,strong,div.day-title,td.day');
+      for(const el of allEls) {
+        if(el.textContent.trim() === day) {
+          let tbl = el.parentElement;
+          while(tbl && tbl.tagName !== 'TABLE') tbl = tbl.nextElementSibling;
+          if(!tbl) continue;
+          const rows = tbl.querySelectorAll('tr');
+          rows.forEach((row,i) => {
+            if(i===0) return;
+            const lesson = extractLesson([...row.querySelectorAll('td')], day);
+            if(lesson) lessons.push(lesson);
+          });
+          break;
+        }
+      }
+    }
+  }
 
-  return sched;
+  return lessons.length ? lessons : null;
 }
 
-/* ── ОТРИСОВКА ГРУПП ─────────────── */
-function renderGroups(list){
-  const grid = document.getElementById('gGrid');
-  const lbl  = document.getElementById('gLabel');
-  lbl.textContent = `Все группы (${allGroups.length})`;
+function extractLesson(cells, day) {
+  let pair=0, timeStr='—', subject='', teacher='—', room='—', ltype='', week='обе';
 
-  if(!list.length){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--text3)">Ничего не найдено</div>';
+  for(const cell of cells) {
+    const text = cell.textContent.trim();
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+
+    // Время
+    const tm = text.match(/(\d{2}:\d{2})\s*[-–]\s*(\d{2}:\d{2})/);
+    if(tm) {
+      timeStr = `${tm[1]}–${tm[2]}`;
+      for(const [pn,[ps]] of Object.entries(PAIR_TIMES)) {
+        if(ps === tm[1]) { pair = +pn; break; }
+      }
+      continue;
+    }
+
+    // Неделя
+    if(/нечёт|нечет/i.test(text)) { week='нечетная'; continue; }
+    if(/чётн|четн/i.test(text) && !/нечёт|нечет/i.test(text)) { week='четная'; continue; }
+
+    // Предмет из <b>
+    const b = cell.querySelector('b,strong');
+    if(b && !subject) { subject = b.textContent.trim(); }
+
+    // Преподаватель из <a>
+    const a = cell.querySelector('a');
+    if(a) {
+      const at = a.textContent.trim();
+      if(/[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.[А-ЯЁ]\./.test(at)) teacher = at;
+    }
+
+    // Из строк br
+    if(!subject && lines.length > 0) {
+      for(const l of lines) {
+        if(l.length > 4 && !/^\d+$/.test(l) && !/^\d{2}:\d{2}/.test(l)) {
+          subject = l.slice(0,100); break;
+        }
+      }
+      for(const l of lines.slice(1)) {
+        if(teacher==='—' && /[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.[А-ЯЁ]\./.test(l)) teacher = l;
+        else if(room==='—' && /^[А-ЯЁа-яёA-Za-z0-9][-\d]+/.test(l) && l.length<20) room = l;
+        else if(!ltype && /лек|пр\.|лаб|сем/i.test(l)) ltype = l;
+      }
+    }
+  }
+  if(!subject) return null;
+  return {day,pair,time:timeStr,subject,teacher,room,type:ltype,week};
+}
+
+/* ─── ЗАГРУЗКА ГРУПП ─── */
+async function loadGroups() {
+  // Показываем заглушку групп, пока грузится список
+  renderGroups(getDefaultGroups());
+
+  try {
+    const data = await apiFetch('/api/groups?q=');  // пробуем получить все группы
+    if(Array.isArray(data) && data.length > 0) {
+      allGroups = [...new Set(data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean))].sort();
+    }
+  } catch(e) {}
+
+  if(!allGroups.length) {
+    // Пробуем поиск по известным префиксам
+    const prefixes = ['КИ','ПИ','ПМИ','ИСИТ','ИВТ','БИ','ПМ','ФИ','МО'];
+    for(const p of prefixes) {
+      try {
+        const data = await apiFetch(`/api/groups?q=${encodeURIComponent(p)}`);
+        if(Array.isArray(data) && data.length) {
+          allGroups.push(...data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean));
+        }
+      } catch(e) {}
+    }
+    allGroups = [...new Set(allGroups)].sort();
+  }
+
+  if(allGroups.length > 0) {
+    renderGroups(allGroups.slice(0,40));
+  }
+  // иначе оставляем дефолтные
+}
+
+/* ─── ЗАГРУЗКА РАСПИСАНИЯ ─── */
+async function loadSchedule(group) {
+  // Метод 1: JSON API
+  const data = await apiFetch(`/api/schedule?group=${encodeURIComponent(group)}`);
+  if(Array.isArray(data) && data.length) return normalizeJsonLessons(data);
+
+  // Метод 2: HTML-парсинг
+  const htmlLessons = await fetchHtmlSchedule(group);
+  if(htmlLessons && htmlLessons.length) return htmlLessons;
+
+  return [];
+}
+
+function normalizeJsonLessons(raw) {
+  return raw.map(item => {
+    const dayIdx  = item.day || item.weekday;
+    const dayName = DAYS_BY_IDX[dayIdx] || item.day_name || '';
+    if(!dayName) return null;
+
+    const pair = +(item.pair || item.number || item.lesson || 0);
+    const times = PAIR_TIMES[pair] || ['',''];
+    const timeStr = times[0] ? `${times[0]}–${times[1]}` : (item.time || '—');
+
+    let week = item.week || 'обе';
+    if(typeof week==='number') week = week===1?'нечетная':'четная';
+    if(!['нечетная','четная'].includes(week)) week='обе';
+
+    return {
+      day:     dayName,
+      pair,
+      time:    timeStr,
+      subject: (item.subject||item.name||item.discipline||'—').trim(),
+      teacher: (item.teacher||item.lecturer||'—').trim(),
+      room:    (item.place||item.room||item.auditory||'—').trim(),
+      type:    (item.type||item.kind||'').trim(),
+      week,
+    };
+  }).filter(Boolean);
+}
+
+/* ─── УТИЛИТЫ ВРЕМЕНИ ─── */
+function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+function parseMin(s){ const m=s&&s.match(/(\d{1,2}):(\d{2})/); return m?+m[1]*60+ +m[2]:null; }
+function todayName(){ const d=new Date().getDay(); return DAYS_BY_IDX[d===0?7:d]||null; }
+
+function lessonStatus(lesson) {
+  const now=nowMin(), [ts,te]=(lesson.time||'').split('–');
+  const s=parseMin(ts), e=parseMin(te);
+  if(s===null||e===null) return 'unknown';
+  if(now>=s&&now<=e)  return 'ongoing';
+  if(now<s) return (s-now<=15)?'soon':'upcoming';
+  return 'past';
+}
+
+function lessonCountdown(lesson) {
+  const now=nowMin(), [ts,te]=(lesson.time||'').split('–');
+  const s=parseMin(ts), e=parseMin(te);
+  if(s===null||e===null) return '';
+  if(now>=s&&now<=e){ const l=e-now; return l<1?'Заканчивается':`Ещё ${l<60?l+'мин':Math.floor(l/60)+'ч '+l%60+'мин'}`; }
+  if(now<s&&s-now<=15) return `Через ${s-now}мин`;
+  return '';
+}
+
+/* ─── RENDER ─── */
+function renderGroups(list) {
+  const grid=document.getElementById('gGrid');
+  const lbl =document.getElementById('gLbl');
+  lbl.textContent = allGroups.length ? `Все группы (${allGroups.length})` : 'Популярные группы';
+
+  if(!list.length) {
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--tx3)">Ничего не найдено</div>';
     return;
   }
-  grid.innerHTML = '';
+  grid.innerHTML='';
   list.forEach((g,i)=>{
-    const btn = document.createElement('button');
-    btn.className = 'g-chip fu';
-    btn.style.animationDelay = Math.min(i*.025,.5)+'s';
-    btn.textContent = g;
-    btn.onclick = ()=>openGroup(g);
+    const btn=document.createElement('button');
+    btn.className='g-chip fu';
+    btn.style.animationDelay=Math.min(i*.025,.5)+'s';
+    btn.textContent=g;
+    btn.onclick=()=>openGroup(g);
     grid.appendChild(btn);
   });
 }
 
-/* ── ОТКРЫТИЕ ГРУППЫ ─────────────── */
-async function openGroup(group){
-  curGroup = group;
+async function openGroup(group) {
+  curGroup=group;
   haptic('selection');
+  document.getElementById('pg-search').style.display='none';
+  document.getElementById('pg-sched').style.display='block';
+  document.getElementById('backBtn').classList.add('on');
+  document.getElementById('hTitle').textContent=group;
+  document.getElementById('gNm').textContent=group;
+  document.getElementById('gMt').textContent='Загружаю…';
+  document.getElementById('dTabs').innerHTML='';
+  document.getElementById('lList').innerHTML='<div class="loader"><div class="spin"></div><p>Загружаю расписание…</p></div>';
 
-  // Переключаем экраны
-  document.getElementById('searchScreen').style.display  = 'none';
-  document.getElementById('scheduleScreen').style.display = 'block';
-  document.getElementById('backBtn').classList.add('show');
-  document.getElementById('hTitle').textContent = group;
-  document.getElementById('gName').textContent  = group;
-  document.getElementById('gMeta').textContent  = 'Загружаю…';
+  try {
+    const lessons = await loadSchedule(group);
+    const byDay={};
+    (lessons||[]).forEach(l=>{ (byDay[l.day]=byDay[l.day]||[]).push(l); });
+    const days=DAYS_ORDER.filter(d=>byDay[d]);
 
-  // Placeholder
-  document.getElementById('dTabs').innerHTML = '';
-  document.getElementById('lList').innerHTML = '<div class="loader"><div class="spin"></div><p>Загружаю расписание…</p></div>';
-
-  try{
-    schedule = await loadSchedule(group);
-    const days = DAYS_ORDER.filter(d => schedule[d]);
-
-    if(!days.length){
-      document.getElementById('gMeta').textContent = 'Данные не найдены';
-      document.getElementById('lList').innerHTML = `
-        <div class="err-box"><span style="font-size:20px">⚠️</span>
-        <p>Расписание для группы <b>${group}</b> не найдено.<br>Проверь правильность названия.</p></div>`;
+    if(!days.length) {
+      document.getElementById('gMt').textContent='Данные не найдены';
+      document.getElementById('lList').innerHTML=`<div class="err"><span style="font-size:20px">⚠️</span><p>Расписание для группы <b>${group}</b> не найдено.<br>Проверь правильность названия.</p></div>`;
       return;
     }
 
-    const total = days.reduce((s,d)=>s+schedule[d].length,0);
-    document.getElementById('gMeta').textContent = `${days.length} дней · ${total} пар`;
-
+    schedule=byDay;
+    const total=days.reduce((s,d)=>s+schedule[d].length,0);
+    document.getElementById('gMt').textContent=`${days.length} дней · ${total} пар`;
     buildTabs(days);
 
-    // Показываем сегодняшний день или первый доступный
-    const today = todayDayName();
-    showDay(days.includes(today) ? today : days[0]);
+    const today=todayName();
+    showDay(days.includes(today)?today:days[0]);
 
-    // Запускаем таймер
     clearInterval(timerID);
-    timerID = setInterval(()=>{
-      if(curDay && schedule[curDay]) refreshBadges(curDay);
-    }, 30000);
+    timerID=setInterval(()=>{ if(curDay&&schedule[curDay]) refreshBadges(); },30000);
 
-  } catch(e){
+  } catch(e) {
     console.error(e);
-    document.getElementById('gMeta').textContent = 'Ошибка загрузки';
-    document.getElementById('lList').innerHTML = `
-      <div class="err-box"><span style="font-size:20px">⚠️</span>
-      <p>Не удалось загрузить расписание. Проверь интернет.</p></div>`;
+    document.getElementById('gMt').textContent='Ошибка';
+    document.getElementById('lList').innerHTML=`<div class="err"><span style="font-size:20px">⚠️</span><p>Не удалось загрузить расписание. Попробуй ещё раз.</p></div>`;
   }
 }
 
-/* ── ВКЛАДКИ ДНЕЙ ────────────────── */
-function buildTabs(days){
-  const tabs = document.getElementById('dTabs');
-  const today = todayDayName();
-  tabs.innerHTML = '';
+function buildTabs(days) {
+  const tabs=document.getElementById('dTabs');
+  const today=todayName();
+  tabs.innerHTML='';
   days.forEach(d=>{
-    const idx  = DAYS_ORDER.indexOf(d);
-    const btn  = document.createElement('button');
-    btn.className = 'd-tab' + (d===today?' today':'');
-    btn.dataset.day = d;
-    btn.innerHTML = `${DAYS_SHORT[idx]||d.slice(0,2)}${d===today?'<span class="d-dot"></span>':''}`;
-    btn.onclick = ()=>{ haptic('selection'); showDay(d); };
+    const i=DAYS_ORDER.indexOf(d);
+    const btn=document.createElement('button');
+    btn.className='d-tab'+(d===today?' today':'');
+    btn.dataset.day=d;
+    btn.innerHTML=`${DAYS_SHORT[i]||d.slice(0,2)}${d===today?'<span class="d-dot"></span>':''}`;
+    btn.onclick=()=>{ haptic('selection'); showDay(d); };
     tabs.appendChild(btn);
   });
 }
 
-/* ── ПОКАЗ ДНЯ ───────────────────── */
-function showDay(day){
-  curDay = day;
-  const today = todayDayName();
-  const isToday = (day === today);
+function showDay(day) {
+  curDay=day;
+  const today=todayName(), isToday=(day===today);
+  document.querySelectorAll('.d-tab').forEach(t=>t.classList.toggle('active',t.dataset.day===day));
+  const lessons=schedule[day]||[];
+  const list=document.getElementById('lList');
+  list.innerHTML='';
 
-  // Активная вкладка
-  document.querySelectorAll('.d-tab').forEach(t=>{
-    t.classList.toggle('active', t.dataset.day===day);
-  });
-
-  const lessons = schedule[day] || [];
-  const list = document.getElementById('lList');
-  list.innerHTML = '';
-
-  if(!lessons.length){
-    list.innerHTML = `<div class="empty">
-      <div class="empty-ico">🎉</div>
-      <div class="empty-t">Занятий нет</div>
-      <div class="empty-s">Этот день свободен</div>
-    </div>`;
+  if(!lessons.length) {
+    list.innerHTML=`<div class="empty"><div class="empty-ico">🎉</div><div class="empty-t">Занятий нет</div><div class="empty-s">Этот день свободен</div></div>`;
     return;
   }
 
-  lessons.forEach((ls,i)=>{
-    const st = isToday ? status(ls) : 'unknown';
-    const cd = isToday ? countdown(ls) : '';
-    const [ts,te] = (ls.time||'').split('–');
+  const sorted=[...lessons].sort((a,b)=>a.pair-b.pair);
+  sorted.forEach((ls,i)=>{
+    const st=isToday?lessonStatus(ls):'unknown';
+    const cd=isToday?lessonCountdown(ls):'';
+    const [ts,te]=(ls.time||'').split('–');
 
-    const card = document.createElement('div');
-    card.className = `l-card fu ${st!=='unknown'?st:''}`;
-    card.style.animationDelay = (i*.05)+'s';
+    const card=document.createElement('div');
+    card.className=`l-card fu${st!=='unknown'?' '+st:''}`;
+    card.style.animationDelay=(i*.05)+'s';
 
-    let badgeHTML = '';
-    if(st==='ongoing' && cd) badgeHTML = `<div class="l-badge b-ongoing">${cd}</div>`;
-    else if(st==='soon' && cd) badgeHTML = `<div class="l-badge b-soon">${cd}</div>`;
+    let badge='';
+    if(st==='ongoing'&&cd)      badge=`<div class="l-badge b-on">${cd}</div>`;
+    else if(st==='soon'&&cd)    badge=`<div class="l-badge b-sn">${cd}</div>`;
 
-    let tagsHTML = '';
-    if(ls.teacher!=='—') tagsHTML += `<span class="l-tag">👤 ${ls.teacher}</span>`;
-    if(ls.room!=='—')    tagsHTML += `<span class="l-tag">🚪 ${ls.room}</span>`;
-    if(ls.type)          tagsHTML += `<span class="l-tag type">${ls.type}</span>`;
-    if(ls.week!=='обе')  tagsHTML += `<span class="l-tag week">${ls.week==='нечетная'?'нечёт.':'чётн.'}</span>`;
+    let tags='';
+    if(ls.teacher!=='—') tags+=`<span class="l-tag">👤 ${ls.teacher}</span>`;
+    if(ls.room!=='—')    tags+=`<span class="l-tag">🚪 ${ls.room}</span>`;
+    if(ls.type)          tags+=`<span class="l-tag tp">${ls.type}</span>`;
+    if(ls.week!=='обе')  tags+=`<span class="l-tag wk">${ls.week==='нечетная'?'нечёт.':'чётн.'}</span>`;
 
-    card.innerHTML = `
-      <div class="l-time-col">
-        <div class="l-time-s">${ts||'—'}</div>
-        <div class="l-time-e">${te||''}</div>
-        <div class="l-pair-num">${ls.pair?ls.pair+' пара':''}</div>
+    card.innerHTML=`
+      <div class="l-tc">
+        <div class="l-ts">${ts||'—'}</div>
+        <div class="l-te">${te||''}</div>
+        <div class="l-pn">${ls.pair?ls.pair+' пара':''}</div>
       </div>
       <div class="l-body">
         <div class="l-name">${ls.subject}</div>
-        <div class="l-tags">${tagsHTML}</div>
+        <div class="l-tags">${tags}</div>
       </div>
-      ${badgeHTML}`;
-
+      ${badge}`;
     list.appendChild(card);
   });
 
-  // Скролл к текущей паре
-  if(isToday){
+  if(isToday) {
     setTimeout(()=>{
-      const el = list.querySelector('.l-card.ongoing') || list.querySelector('.l-card.soon');
+      const el=list.querySelector('.l-card.ongoing')||list.querySelector('.l-card.soon');
       if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }, 300);
+    },300);
   }
 }
 
-/* ── ОБНОВЛЕНИЕ БЕЙДЖЕЙ ──────────── */
-function refreshBadges(day){
-  const isToday = (day === todayDayName());
-  if(!isToday) return;
-  const lessons = schedule[day] || [];
+function refreshBadges() {
+  if(!curDay||todayName()!==curDay) return;
+  const lessons=[...(schedule[curDay]||[])].sort((a,b)=>a.pair-b.pair);
   document.querySelectorAll('.l-card').forEach((card,i)=>{
     if(!lessons[i]) return;
-    const st = status(lessons[i]);
-    const cd = countdown(lessons[i]);
+    const st=lessonStatus(lessons[i]);
+    const cd=lessonCountdown(lessons[i]);
     card.classList.remove('ongoing','soon','upcoming','past','unknown');
     if(st!=='unknown') card.classList.add(st);
-    let badge = card.querySelector('.l-badge');
-    if(st==='ongoing' && cd){
+    let badge=card.querySelector('.l-badge');
+    if((st==='ongoing'||st==='soon')&&cd){
       if(!badge){ badge=document.createElement('div'); card.appendChild(badge); }
-      badge.className='l-badge b-ongoing'; badge.textContent=cd;
-    } else if(st==='soon' && cd){
-      if(!badge){ badge=document.createElement('div'); card.appendChild(badge); }
-      badge.className='l-badge b-soon'; badge.textContent=cd;
+      badge.className=`l-badge ${st==='ongoing'?'b-on':'b-sn'}`;
+      badge.textContent=cd;
     } else if(badge) badge.remove();
   });
 }
 
-/* ── НАЗАД ───────────────────────── */
-function goBack(){
+function goBack() {
   clearInterval(timerID);
-  curGroup = null; schedule = {}; curDay = null;
-  document.getElementById('scheduleScreen').style.display = 'none';
-  document.getElementById('searchScreen').style.display  = 'block';
-  document.getElementById('backBtn').classList.remove('show');
-  document.getElementById('hTitle').textContent = 'СФУ Расписание';
+  curGroup=null; schedule={}; curDay=null;
+  document.getElementById('pg-sched').style.display='none';
+  document.getElementById('pg-search').style.display='block';
+  document.getElementById('backBtn').classList.remove('on');
+  document.getElementById('hTitle').textContent='СФУ Расписание';
   haptic('light');
 }
 
-/* ── ПОИСК ───────────────────────── */
-let searchTimer = null;
-document.getElementById('sInput').addEventListener('input', e=>{
+/* ─── ПОИСК ─── */
+let searchTimer=null;
+document.getElementById('sInp').addEventListener('input',e=>{
   clearTimeout(searchTimer);
-  const q = e.target.value.trim().toLowerCase();
-  if(!q){ renderGroups(allGroups.slice(0,40)); return; }
-  searchTimer = setTimeout(()=>{
-    const f = allGroups.filter(g=>g.toLowerCase().includes(q));
-    document.getElementById('gLabel').textContent = `Результаты (${f.length})`;
-    renderGroups(f.slice(0,40));
-  }, 150);
+  const q=e.target.value.trim().toLowerCase();
+  if(!q){ renderGroups((allGroups.length?allGroups:getDefaultGroups()).slice(0,40)); return; }
+  searchTimer=setTimeout(async()=>{
+    // Сначала фильтруем локальный список
+    let filtered=allGroups.filter(g=>g.toLowerCase().includes(q));
+    if(!filtered.length && q.length>=2) {
+      // Запрашиваем через API
+      try {
+        const data=await apiFetch(`/api/groups?q=${encodeURIComponent(q)}`);
+        if(Array.isArray(data)&&data.length) {
+          filtered=data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean);
+          // Добавляем в общий список
+          filtered.forEach(g=>{ if(!allGroups.includes(g)) allGroups.push(g); });
+          allGroups.sort();
+        }
+      } catch(e){}
+    }
+    document.getElementById('gLbl').textContent=`Результаты (${filtered.length})`;
+    renderGroups(filtered.slice(0,40));
+  },200);
 });
 
-document.getElementById('sInput').addEventListener('keydown', e=>{
+document.getElementById('sInp').addEventListener('keydown',e=>{
   if(e.key!=='Enter') return;
-  const q = e.target.value.trim();
-  const f = allGroups.filter(g=>g.toLowerCase().includes(q.toLowerCase()));
+  const q=e.target.value.trim();
+  const f=allGroups.filter(g=>g.toLowerCase().includes(q.toLowerCase()));
   if(f.length===1) openGroup(f[0]);
 });
 
-/* ── ХЕДЕР / ДАТА ────────────────── */
-function updateHdrSub(){
-  const now = new Date();
-  document.getElementById('hSub').textContent = now.toLocaleDateString('ru',{weekday:'short',day:'numeric',month:'long'});
+/* ─── ХЕДЕР ─── */
+function updateSub(){
+  document.getElementById('hSub').textContent=new Date().toLocaleDateString('ru',{weekday:'short',day:'numeric',month:'long'});
 }
 
-/* ── ХАПТИК ──────────────────────── */
-function haptic(type){
-  try{
-    if(type==='selection') tg.HapticFeedback.selectionChanged();
-    else tg.HapticFeedback.impactOccurred(type);
-  } catch(e){}
+/* ─── ХАПТИК ─── */
+function haptic(t){
+  try{ if(t==='selection') tg.HapticFeedback.selectionChanged(); else tg.HapticFeedback.impactOccurred(t); }catch(e){}
 }
 
-/* ── СТАРТ ───────────────────────── */
-updateHdrSub();
+/* ─── ДЕФОЛТНЫЕ ГРУППЫ ─── */
+function getDefaultGroups(){
+  return [
+    'КИ20-01','КИ20-02','КИ21-01','КИ21-02','КИ22-01',
+    'ПИ20-01','ПИ21-01','ПИ22-01','ПМИ20-01','ПМИ21-01',
+    'ИСИТ-101','ИСИТ-201','ИСИТ-301','ИВТ-101','ИВТ-201',
+  ];
+}
+
+/* ─── СТАРТ ─── */
+updateSub();
 loadGroups();
 </script>
 </body>
