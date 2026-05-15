@@ -276,12 +276,38 @@ function cleanText(s) {
 function parseHTMLGroups(html, query='') {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const q = cleanText(query).toLowerCase().replaceAll('ё','е');
+  const q = normalizeGroupQuery(query);
   const groups = [...doc.querySelectorAll('a[href^="?group="]')]
     .map(a => cleanText(a.textContent))
     .filter(Boolean)
-    .filter(g => !q || g.toLowerCase().replaceAll('ё','е').includes(q));
+    .filter(g => !q || normalizeGroupQuery(g).includes(q));
   return [...new Set(groups)].sort((a,b) => a.localeCompare(b, 'ru'));
+}
+
+function normalizeGroupQuery(s) {
+  return cleanText(s).toLowerCase().replaceAll('ё','е');
+}
+
+function toGroupNames(data) {
+  return Array.isArray(data)
+    ? data.map(x => typeof x === 'string' ? x : x.name || '').map(cleanText).filter(Boolean)
+    : [];
+}
+
+function mergeGroups(list) {
+  let changed = false;
+  list.forEach(g => {
+    if(g && !allGroups.includes(g)) {
+      allGroups.push(g);
+      changed = true;
+    }
+  });
+  if(changed) allGroups.sort((a,b) => a.localeCompare(b, 'ru'));
+}
+
+function filterGroups(query) {
+  const q = normalizeGroupQuery(query);
+  return allGroups.filter(g => normalizeGroupQuery(g).includes(q));
 }
 
 function parseHTMLSchedule(html) {
@@ -376,9 +402,7 @@ async function loadGroups() {
 
   try {
     const data = await apiFetch('/api/groups?q=');  // пробуем получить все группы
-    if(Array.isArray(data) && data.length > 0) {
-      allGroups = [...new Set(data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean))].sort();
-    }
+    mergeGroups(toGroupNames(data));
   } catch(e) {}
 
   if(!allGroups.length) {
@@ -387,12 +411,9 @@ async function loadGroups() {
     for(const p of prefixes) {
       try {
         const data = await apiFetch(`/api/groups?q=${encodeURIComponent(p)}`);
-        if(Array.isArray(data) && data.length) {
-          allGroups.push(...data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean));
-        }
+        mergeGroups(toGroupNames(data));
       } catch(e) {}
     }
-    allGroups = [...new Set(allGroups)].sort();
   }
 
   if(allGroups.length > 0) {
@@ -627,25 +648,32 @@ function goBack() {
 
 /* ─── ПОИСК ─── */
 let searchTimer=null;
+let searchSeq=0;
 document.getElementById('sInp').addEventListener('input',e=>{
   clearTimeout(searchTimer);
-  const q=e.target.value.trim().toLowerCase();
+  const raw=e.target.value.trim();
+  const q=normalizeGroupQuery(raw);
   if(!q){ renderGroups((allGroups.length?allGroups:getDefaultGroups()).slice(0,40)); return; }
   searchTimer=setTimeout(async()=>{
-    // Сначала фильтруем локальный список
-    let filtered=allGroups.filter(g=>g.toLowerCase().includes(q));
-    if(!filtered.length && q.length>=2) {
-      // Запрашиваем через API
+    const seq=++searchSeq;
+    let filtered=filterGroups(raw);
+    document.getElementById('gLbl').textContent=`Результаты (${filtered.length})`;
+    renderGroups(filtered.slice(0,40));
+
+    if(q.length>=2) {
+      document.getElementById('gLbl').textContent=`Ищу «${raw}»…`;
       try {
-        const data=await apiFetch(`/api/groups?q=${encodeURIComponent(q)}`);
-        if(Array.isArray(data)&&data.length) {
-          filtered=data.map(x=>typeof x==='string'?x:x.name||'').filter(Boolean);
-          // Добавляем в общий список
-          filtered.forEach(g=>{ if(!allGroups.includes(g)) allGroups.push(g); });
-          allGroups.sort();
+        const data=await apiFetch(`/api/groups?q=${encodeURIComponent(raw)}`);
+        if(seq!==searchSeq) return;
+        mergeGroups(toGroupNames(data));
+        filtered=filterGroups(raw);
+        if(!filtered.length) {
+          filtered=toGroupNames(data);
         }
       } catch(e){}
     }
+
+    if(seq!==searchSeq) return;
     document.getElementById('gLbl').textContent=`Результаты (${filtered.length})`;
     renderGroups(filtered.slice(0,40));
   },200);
@@ -654,7 +682,7 @@ document.getElementById('sInp').addEventListener('input',e=>{
 document.getElementById('sInp').addEventListener('keydown',e=>{
   if(e.key!=='Enter') return;
   const q=e.target.value.trim();
-  const f=allGroups.filter(g=>g.toLowerCase().includes(q.toLowerCase()));
+  const f=filterGroups(q);
   if(f.length===1) openGroup(f[0]);
 });
 
