@@ -156,7 +156,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
    ВАЖНО: укажи IP/домен сервера где запущен bot.py
    Если запущено локально для тестов: http://localhost:8080
    Если на VPS: http://1.2.3.4:8080 или https://yourdomain.com
-   
+
    Если оставить пустым — будет работать fallback через
    corsproxy.io (медленнее, не всегда доступен)
 ─────────────────────────────────────────────────── */
@@ -212,7 +212,7 @@ async function apiFetch(path) {
   const sfuPath = path.replace('/api/groups', '/api/timetable/groups')
                       .replace('/api/schedule', '/api/timetable/lessons');
   const sfuUrl = 'https://edu.sfu-kras.ru' + sfuPath;
-  
+
   for(const proxy of [
     'https://corsproxy.io/?',
     'https://api.allorigins.win/raw?url=',
@@ -226,8 +226,29 @@ async function apiFetch(path) {
     } catch(e) { errors.push('proxy:' + e.message); }
   }
 
+  // 3. HTML fallback для списка групп
+  if(path.startsWith('/api/groups')) {
+    const q = new URLSearchParams(path.split('?')[1] || '').get('q') || '';
+    const groups = await fetchHtmlGroups(q);
+    if(groups.length) return groups;
+  }
+
   console.warn('apiFetch errors for', path, errors);
   return null;
+}
+
+async function fetchHtmlGroups(query='') {
+  const url = 'https://edu.sfu-kras.ru/timetable';
+  for(const proxy of [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+  ]) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(12000)});
+      if(r.ok) return parseHTMLGroups(await r.text(), query);
+    } catch(e) { continue; }
+  }
+  return [];
 }
 
 async function fetchHtmlSchedule(group) {
@@ -248,109 +269,104 @@ async function fetchHtmlSchedule(group) {
 }
 
 /* ─── HTML ПАРСИНГ (клиентский fallback) ─── */
+function cleanText(s) {
+  return (s || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function parseHTMLGroups(html, query='') {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const q = cleanText(query).toLowerCase().replaceAll('ё','е');
+  const groups = [...doc.querySelectorAll('a[href^="?group="]')]
+    .map(a => cleanText(a.textContent))
+    .filter(Boolean)
+    .filter(g => !q || g.toLowerCase().replaceAll('ё','е').includes(q));
+  return [...new Set(groups)].sort((a,b) => a.localeCompare(b, 'ru'));
+}
+
 function parseHTMLSchedule(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const lessons = [];
 
-  const pairTimesArr = Object.entries(PAIR_TIMES);
-
-  // Ищем все таблицы
-  const tables = doc.querySelectorAll('table');
+  const tables = doc.querySelectorAll('table.timetable');
   tables.forEach(table => {
     let currentDay = null;
-    const rows = table.querySelectorAll('tr');
+    const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
     rows.forEach(row => {
-      // Заголовок дня
-      const ths = row.querySelectorAll('th');
-      if(ths.length > 0) {
-        const txt = ths[0].textContent.trim();
-        for(const d of DAYS_ORDER) {
-          if(txt.includes(d)) { currentDay = d; return; }
-        }
+      if(row.classList.contains('heading-section')) {
+        const txt = cleanText(row.textContent);
+        currentDay = DAYS_ORDER.find(d => txt.includes(d)) || null;
+        return;
       }
-      // Строка с данными пары
-      if(!currentDay) return;
-      const tds = row.querySelectorAll('td');
-      if(tds.length < 2) return;
+      if(!currentDay || row.classList.contains('heading')) return;
 
-      const lesson = extractLesson([...tds], currentDay);
-      if(lesson) lessons.push(lesson);
+      const tds = [...row.children].filter(el => el.tagName === 'TD');
+      if(tds.length < 3) return;
+
+      const pair = parseInt(cleanText(tds[0].textContent), 10) || 0;
+      const timeStr = normalizeTime(cleanText(tds[1].textContent));
+      const lessonCells = tds.slice(2);
+
+      if(lessonCells.length === 1) {
+        const lesson = extractLesson(lessonCells[0], currentDay, pair, timeStr, 'обе');
+        if(lesson) lessons.push(lesson);
+        return;
+      }
+
+      lessonCells.slice(0,2).forEach((cell, i) => {
+        const week = cell.getAttribute('colspan') === '2' ? 'обе' : (i === 0 ? 'нечетная' : 'четная');
+        const lesson = extractLesson(cell, currentDay, pair, timeStr, week);
+        if(lesson) lessons.push(lesson);
+      });
     });
   });
 
-  // Fallback: ищем заголовки-теги
-  if(!lessons.length) {
-    for(const day of DAYS_ORDER) {
-      const allEls = doc.querySelectorAll('h2,h3,h4,b,strong,div.day-title,td.day');
-      for(const el of allEls) {
-        if(el.textContent.trim() === day) {
-          let tbl = el.parentElement;
-          while(tbl && tbl.tagName !== 'TABLE') tbl = tbl.nextElementSibling;
-          if(!tbl) continue;
-          const rows = tbl.querySelectorAll('tr');
-          rows.forEach((row,i) => {
-            if(i===0) return;
-            const lesson = extractLesson([...row.querySelectorAll('td')], day);
-            if(lesson) lessons.push(lesson);
-          });
-          break;
-        }
-      }
-    }
-  }
-
-  return lessons.length ? lessons : null;
+  return lessons.length ? dedupeLessons(lessons) : null;
 }
 
-function extractLesson(cells, day) {
-  let pair=0, timeStr='—', subject='', teacher='—', room='—', ltype='', week='обе';
+function normalizeTime(s) {
+  const m = cleanText(s).replaceAll('.', ':').match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  return m ? `${m[1].padStart(5,'0')}–${m[2].padStart(5,'0')}` : '—';
+}
 
-  for(const cell of cells) {
-    const text = cell.textContent.trim();
-    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+function extractLesson(cell, day, pair, timeStr, week) {
+  const text = cleanText(cell.textContent);
+  if(!text || text === '—' || /выходной день/i.test(text)) return null;
 
-    // Время
-    const tm = text.match(/(\d{2}:\d{2})\s*[-–]\s*(\d{2}:\d{2})/);
-    if(tm) {
-      timeStr = `${tm[1]}–${tm[2]}`;
-      for(const [pn,[ps]] of Object.entries(PAIR_TIMES)) {
-        if(ps === tm[1]) { pair = +pn; break; }
-      }
-      continue;
-    }
-
-    // Неделя
-    if(/нечёт|нечет/i.test(text)) { week='нечетная'; continue; }
-    if(/чётн|четн/i.test(text) && !/нечёт|нечет/i.test(text)) { week='четная'; continue; }
-
-    // Предмет из <b>
-    const b = cell.querySelector('b,strong');
-    if(b && !subject) { subject = b.textContent.trim(); }
-
-    // Преподаватель из <a>
-    const a = cell.querySelector('a');
-    if(a) {
-      const at = a.textContent.trim();
-      if(/[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.[А-ЯЁ]\./.test(at)) teacher = at;
-    }
-
-    // Из строк br
-    if(!subject && lines.length > 0) {
-      for(const l of lines) {
-        if(l.length > 4 && !/^\d+$/.test(l) && !/^\d{2}:\d{2}/.test(l)) {
-          subject = l.slice(0,100); break;
-        }
-      }
-      for(const l of lines.slice(1)) {
-        if(teacher==='—' && /[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.[А-ЯЁ]\./.test(l)) teacher = l;
-        else if(room==='—' && /^[А-ЯЁа-яёA-Za-z0-9][-\d]+/.test(l) && l.length<20) room = l;
-        else if(!ltype && /лек|пр\.|лаб|сем/i.test(l)) ltype = l;
-      }
-    }
-  }
+  const b = cell.querySelector('b,strong');
+  let subject = b ? cleanText(b.textContent) : '';
+  if(!subject) subject = cleanText((cell.textContent || '').split('\n')[0]).replace(/\s*\([^)]*\)\s*$/, '');
   if(!subject) return null;
+
+  const typeMatch = text.match(/\(([^)]*(?:лек|пр\.?|лаб|сем|занятие)[^)]*)\)/i);
+  let ltype = typeMatch ? cleanText(typeMatch[1]) : '';
+
+  const teacherEl = cell.querySelector('em a, em, a');
+  const teacher = teacherEl ? cleanText(teacherEl.textContent) || '—' : '—';
+
+  let room = '—';
+  let format = '';
+  const lines = (cell.innerText || cell.textContent || '').split('\n').map(cleanText).filter(Boolean);
+  for(const line of lines) {
+    const low = line.toLowerCase().replaceAll('ё','е');
+    if(line === subject || line === teacher || /^\([^)]*\)$/.test(line)) continue;
+    if(low.includes('синхронно') || low.includes('асинхронно')) { format = line; continue; }
+    if(low.includes('ауд') || low.includes('корпус') || low.includes('online') || low.includes('эиос') || low.includes('http')) room = line;
+  }
+  ltype = [ltype, format].filter(Boolean).join(' · ');
+
   return {day,pair,time:timeStr,subject,teacher,room,type:ltype,week};
+}
+
+function dedupeLessons(lessons) {
+  const seen = new Set();
+  return lessons.filter(l => {
+    const key = [l.day,l.pair,l.time,l.subject,l.teacher,l.room,l.type,l.week].join('|');
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /* ─── ЗАГРУЗКА ГРУПП ─── */
