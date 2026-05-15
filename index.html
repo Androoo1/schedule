@@ -160,7 +160,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
    Если оставить пустым — будет работать fallback через
    corsproxy.io (медленнее, не всегда доступен)
 ─────────────────────────────────────────────────── */
-const API_BASE = "";  // ← ВСТАВЬ СЮДА URL твоего сервера, например: "http://1.2.3.4:8080"
+const API_BASE = "";  // ← ВСТАВЬ СЮДА URL публичного сервера, например: "https://yourdomain.com"
+let detectedApiBase = "";
 
 /* ─── TG INIT ─── */
 const tg = window.Telegram.WebApp;
@@ -201,9 +202,10 @@ async function apiFetch(path) {
   const errors = [];
 
   // 1. Свой сервер
-  if(API_BASE) {
+  const ownBase = await getApiBase();
+  if(ownBase) {
     try {
-      const r = await fetch(API_BASE + path, {signal: AbortSignal.timeout(8000)});
+      const r = await fetch(ownBase + path, {signal: AbortSignal.timeout(8000)});
       if(r.ok) return await r.json();
     } catch(e) { errors.push('own:' + e.message); }
   }
@@ -235,6 +237,46 @@ async function apiFetch(path) {
 
   console.warn('apiFetch errors for', path, errors);
   return null;
+}
+
+function canProbeLocalApi() {
+  return location.protocol === 'file:' ||
+         location.hostname === 'localhost' ||
+         location.hostname === '127.0.0.1';
+}
+
+async function getApiBase() {
+  if(API_BASE) return API_BASE.replace(/\/$/, '');
+  if(detectedApiBase) return detectedApiBase;
+  if(!canProbeLocalApi()) return '';
+
+  const hosts = ['localhost', '127.0.0.1'];
+  const ports = [8080,8081,8082,8083,8084,8085,8086,8087,8088,8089,8090];
+  for(const host of hosts) {
+    for(const port of ports) {
+      const base = `http://${host}:${port}`;
+      if(await probeApiBase(base)) {
+        detectedApiBase = base;
+        console.info('Local API detected:', detectedApiBase);
+        return detectedApiBase;
+      }
+    }
+  }
+  return '';
+}
+
+async function probeApiBase(base) {
+  try {
+    const r = await fetch(`${base}/api/health`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(1200)
+    });
+    if(r.ok) {
+      const data = await r.json().catch(() => null);
+      if(data && data.ok === true) return true;
+    }
+  } catch(e) {}
+  return false;
 }
 
 async function fetchHtmlGroups(query='') {
